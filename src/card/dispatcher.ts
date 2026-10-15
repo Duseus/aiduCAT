@@ -88,6 +88,25 @@ export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
       return;
     }
     log.info('cardAction', 'cmd', { cmd, scope });
+
+    // aiduCAT clarify: an option button on a clarify card. The button value
+    // carries `cmd: 'clarify.answer'` plus the JSON payload in `arg`. Forward
+    // the choice as a plain user message into the scope's pending queue so
+    // the agent's session resumes with the answer.
+    if (cmd === 'clarify.answer') {
+      const answer = parseClarifyAnswer(
+        typeof payload.arg === 'string' ? payload.arg : '',
+      );
+      if (!answer) {
+        log.warn('cardAction', 'clarify-unparseable', {
+          raw: String(payload.arg ?? '').slice(0, 120),
+        });
+        return;
+      }
+      forwardToAgent(deps, { clarify: answer }, formValue, scope, threadId, mode);
+      return;
+    }
+
     const msg = makeFakeMsg(deps.evt, threadId);
 
     const ctx: CommandContext = {
@@ -141,10 +160,22 @@ export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
   return;
 }
 
+/** Parse the JSON arg the clarify button carries: `{"q":"...","a":"..."}`.
+ * Returns null when the shape is broken (nothing to forward). */
+function parseClarifyAnswer(arg: string): { question: string; answer: string } | null {
+  try {
+    const parsed = JSON.parse(arg) as { q?: unknown; a?: unknown };
+    if (typeof parsed.q !== 'string' || typeof parsed.a !== 'string') return null;
+    if (!parsed.q.trim() || !parsed.a.trim()) return null;
+    return { question: parsed.q, answer: parsed.a };
+  } catch {
+    return null;
+  }
+}
+
 async function resolveScope(
   deps: CardDispatchDeps,
-): Promise<{ scope: string; threadId: string | undefined; mode: 'p2p' | 'group' | 'topic' }> {
-  const chatId = deps.evt.chatId;
+): Promise<{ scope: string; threadId: string | undefined; mode: 'p2p' | 'group' | 'topic' }> {  const chatId = deps.evt.chatId;
   const mode = await deps.chatModeCache.resolve(deps.channel, chatId);
   if (mode !== 'topic') {
     return { scope: chatId, threadId: undefined, mode };
@@ -168,6 +199,21 @@ function forwardToAgent(
   threadId: string | undefined,
   mode: 'p2p' | 'group' | 'topic',
 ): void {
+  // aiduCAT clarify: render the choice as a readable answer line the agent
+  // was promised in the system prompt ("[clarify] <question> => <answer>").
+  const clarify = payload.clarify;
+  if (
+    clarify &&
+    typeof clarify === 'object' &&
+    'question' in (clarify as Record<string, unknown>) &&
+    'answer' in (clarify as Record<string, unknown>)
+  ) {
+    const { question, answer } = clarify as { question: unknown; answer: unknown };
+    if (typeof question === 'string' && typeof answer === 'string') {
+      forwardContent(deps, `[clarify] ${question} => ${answer}`, scope, threadId, mode);
+      return;
+    }
+  }
   // Strip the marker so the agent only sees the meaningful fields it set.
   const {
     [BRIDGE_CALLBACK_MARKER]: _marker,
@@ -175,9 +221,25 @@ function forwardToAgent(
     ...agentPayload
   } = payload;
   const merged = formValue ? { ...agentPayload, form_value: formValue } : agentPayload;
+  forwardContent(
+    deps,
+    `[card-click] ${JSON.stringify(merged)}`,
+    scope,
+    threadId,
+    mode,
+  );
+}
+
+function forwardContent(
+  deps: CardDispatchDeps,
+  content: string,
+  scope: string,
+  threadId: string | undefined,
+  mode: 'p2p' | 'group' | 'topic',
+): void {
   log.info('cardAction', 'forward-agent', {
     scope,
-    payload: JSON.stringify(merged).slice(0, 200),
+    content: content.slice(0, 200),
   });
   const synthetic: NormalizedMessage = {
     messageId: deps.evt.messageId,
@@ -186,7 +248,7 @@ function forwardToAgent(
     threadId,
     senderId: deps.evt.operator.openId,
     senderName: deps.evt.operator.name,
-    content: `[card-click] ${JSON.stringify(merged)}`,
+    content,
     rawContentType: 'card_action',
     resources: [],
     mentions: [],
