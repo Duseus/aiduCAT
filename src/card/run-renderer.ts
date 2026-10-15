@@ -26,7 +26,7 @@ export interface RunCardRenderOptions {
 export function renderCard(state: RunState, options: RunCardRenderOptions = {}): object {
   const elements: object[] = [];
 
-  // aiduCAT: answer (text blocks) first, panels below — order fixed by spec.
+  // aiduCAT: answer (text blocks) first, single aiduPOP panel below.
   for (const group of groupBlocks(state.blocks)) {
     if (group.kind === 'text') {
       if (group.content.trim()) {
@@ -35,19 +35,10 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
     }
   }
 
-  if (state.reasoning.content) {
-    elements.push(reasoningPanel(state.reasoning.content, state.reasoning.active));
-  }
-
-  for (const group of groupBlocks(state.blocks)) {
-    if (group.kind === 'tools') {
-      elements.push(...renderToolGroup(group.tools, state.terminal !== 'running'));
-    }
-  }
-
-  // aiduCAT: collapsible meta panel (model / elapsed) — always last, collapsed.
-  const metaPanel = metaPanelMd(state, options);
-  if (metaPanel) elements.push(metaPanel);
+  // aiduCAT: one collapsed panel carrying reasoning + every tool call + the
+  // run meta header (aiduPOP layout). Hidden when there is nothing to show.
+  const popPanel = aiduPopPanel(state, options);
+  if (popPanel) elements.push(popPanel);
 
   if (state.terminal === 'interrupted') {
     elements.push(noteMd('_⏹ 已被中断_'));
@@ -77,6 +68,71 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   });
 }
 
+/**
+ * aiduCAT single panel (aiduPOP layout): the collapsed header carries only
+ * `🤖 model · 💭 thinking-count · 🧰 tool-count · ⏱ elapsed`, and the body
+ * holds the thinking text plus one entry per tool call. Rendered below the
+ * answer; omitted entirely for a run with no reasoning, tools, or meta.
+ *
+ * While running, the header shows a live 🐱 bat signal before the meta (so
+ * the user can see it working even with zero tools yet); on completion the
+ * signal is dropped and the counts/values are final.
+ */
+function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | null {
+  const tools = state.blocks.filter((b): b is Extract<Block, { kind: 'tool' }> => b.kind === 'tool');
+  const hasReasoning = state.reasoning.content.trim().length > 0;
+  const hasError = state.terminal === 'error' && !!state.errorMsg;
+  const running = state.terminal === 'running';
+
+  const meta = metaHeader(state, options);
+  if (!hasReasoning && tools.length === 0 && !meta) return null;
+
+  const title = [running ? '🐱' : null, meta].filter(Boolean).join(' ');
+
+  const bodyParts: string[] = [];
+  if (hasError) bodyParts.push(`⚠️ ${state.errorMsg}`);
+  if (hasReasoning) {
+    // aiduPOP: no "思考过程" caption — just the raw thinking text, capped.
+    bodyParts.push(truncate(state.reasoning.content, REASONING_MAX));
+  }
+  if (tools.length > 0) {
+    // Latest tool on top so the freshest activity is what you see on expand.
+    const lines = tools
+      .slice()
+      .reverse()
+      .map((b) => `- ${toolHeaderText(b.tool)}`);
+    bodyParts.push(lines.join('\n'));
+  }
+
+  return collapsiblePanel({
+    title,
+    expanded: false,
+    border: 'grey',
+    body: bodyParts.join('\n\n') || '_（无过程记录）_',
+  });
+}
+
+/**
+ * aiduPOP header fragment: `🤖 model · 💭 n · 🧰 n · ⏱ elapsed`. Each piece
+ * only appears when it has a value; separators are the aiduPOP `·`.
+ * Elapsed keeps ticking across card updates because renderCard is re-run on
+ * every streaming update with the fixed `options.startedAt`.
+ */
+function metaHeader(state: RunState, options: RunCardRenderOptions): string {
+  const pieces: string[] = [];
+  if (options.model) pieces.push(`🤖 ${options.model}`);
+  if (state.reasoning.segments > 0) pieces.push(`💭 ${state.reasoning.segments}`);
+  const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
+  if (toolCount > 0) pieces.push(`🧰 ${toolCount}`);
+  if (options.startedAt) {
+    const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
+    const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
+    pieces.push(`⏱ ${label}`);
+  }
+  if (state.terminal === 'error') pieces.push('❌');
+  return pieces.join(' · ');
+}
+
 function* groupBlocks(blocks: Block[]): Generator<Group> {
   let toolBuf: ToolEntry[] = [];
   for (const b of blocks) {
@@ -93,34 +149,6 @@ function* groupBlocks(blocks: Block[]): Generator<Group> {
   if (toolBuf.length > 0) yield { kind: 'tools', tools: toolBuf };
 }
 
-function renderToolGroup(tools: ToolEntry[], finalized: boolean): object[] {
-  if (tools.length === 0) return [];
-  if (tools.length < COLLAPSE_TOOL_THRESHOLD) {
-    return tools.map((t) => toolPanel(t, false));
-  }
-  if (finalized) {
-    return [collapsedToolSummary(tools, true)];
-  }
-  // Running: collapse prior tools, keep latest visible.
-  const prior = tools.slice(0, -1);
-  const latest = tools[tools.length - 1];
-  const out: object[] = [];
-  if (prior.length > 0) out.push(collapsedToolSummary(prior, false));
-  if (latest) out.push(toolPanel(latest, true));
-  return out;
-}
-
-function reasoningPanel(content: string, active: boolean): object {
-  // aiduCAT: aligned with Hangzhou aiduPOP emoji layout.
-  const title = active ? '💭 **思考中…**' : '💭 **思考过程（点击展开）**';
-  return collapsiblePanel({
-    title,
-    expanded: active,
-    border: 'grey',
-    body: truncate(content, REASONING_MAX),
-  });
-}
-
 function toolPanel(tool: ToolEntry, expanded: boolean): object {
   return collapsiblePanel({
     title: toolHeaderText(tool),
@@ -128,33 +156,6 @@ function toolPanel(tool: ToolEntry, expanded: boolean): object {
     border: tool.status === 'error' ? 'red' : 'grey',
     body: toolBodyMd(tool) || '_无输出_',
   });
-}
-
-/**
- * Render N tool calls as a single collapsed panel. **Body content is dropped**
- * — only the per-tool header line (icon + name + short summary) is kept.
- *
- * Why no bodies: with full input/output panels nested, the serialized JSON
- * can easily exceed Feishu's per-element size limit (~30KB), causing 400
- * errors that abort the entire card stream. Tool details are still in the
- * file log; users who really need them can `/doctor` to inspect.
- *
- * The latest-running tool, when applicable, is rendered separately via
- * `toolPanel(latest, true)` so live observation isn't sacrificed.
- */
-function collapsedToolSummary(tools: ToolEntry[], finalized: boolean): object {
-  const suffix = finalized ? '（已结束）' : '';
-  const title = `☕ **${tools.length} 个工具调用${suffix}**`;
-  const headerList = tools.map((t) => `- ${toolHeaderText(t)}`).join('\n');
-  return {
-    tag: 'collapsible_panel',
-    expanded: false,
-    header: panelHeader(title),
-    border: { color: 'blue', corner_radius: '5px' },
-    vertical_spacing: '8px',
-    padding: '8px 8px 8px 8px',
-    elements: [{ tag: 'markdown', content: headerList, text_size: 'notation' }],
-  };
 }
 
 interface PanelOpts {
@@ -216,29 +217,6 @@ function footerStatus(status: Exclude<FooterStatus, null>): object {
         ? '🧰 正在调用工具'
         : '✍️ 正在输出';
   return noteMd(text);
-}
-
-/**
- * aiduCAT meta panel: model + elapsed time in a collapsed collapsible_panel.
- * Hidden entirely when we have neither model nor a terminal state worth
- * reporting — keeps short answers visually clean.
- */
-function metaPanelMd(state: RunState, options: RunCardRenderOptions): object | null {
-  const lines: string[] = [];
-  if (options.model) lines.push(`- 🤖 模型：**${options.model}**`);
-  if (options.startedAt) {
-    const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
-    const label = secs >= 60 ? `${Math.floor(secs / 60)} 分 ${secs % 60} 秒` : `${secs} 秒`;
-    lines.push(`- ⏱ 耗时：${label}`);
-  }
-  if (state.terminal === 'done') lines.push(`- 🏁 状态：已完成`);
-  if (lines.length === 0) return null;
-  return collapsiblePanel({
-    title: '📋 **运行信息**',
-    expanded: false,
-    border: 'grey',
-    body: lines.join('\n'),
-  });
 }
 
 function summaryText(state: RunState): string {

@@ -255,7 +255,7 @@ export function finalAnswerOnlyState(state: RunState): RunState {
     blocks: state.finalText
       ? [{ kind: 'text', content: state.finalText, streaming: false }]
       : state.blocks.filter((b) => b.kind === 'text'),
-    reasoning: { content: '', active: false },
+    reasoning: { content: '', active: false, segments: 0 },
     footer: null,
   };
 }

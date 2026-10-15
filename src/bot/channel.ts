@@ -1094,12 +1094,11 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
   // the streaming card's own status footer already signals liveness, and the
   // extra bubble carried a replyTo which rendered as "回复 xxx" quotes.)
 
-  // For non-card modes Claude's output doesn't surface visually until either
-  // a first streamed token (markdown mode) or the whole run ends (text mode).
-  // Add a "Typing" reaction to the triggering message as an instant ack, but
-  // never let that outbound API call block agent event draining.
-  const reactionPromise =
-    cotEnabled || replyMode === 'card' ? undefined : addWorkingReaction(channel, lastMsg.messageId);
+  // aiduCAT: always add the "Typing" (敲键盘) reaction as the instant "已启动"
+  // cue — even in card mode the streaming card may take a beat to post, and
+  // 猴哥 wants the emoji as the reliable liveness signal. Cleaned up in the
+  // `finally` below; never let this outbound call block agent event draining.
+  const reactionPromise = addWorkingReaction(channel, lastMsg.messageId);
 
   try {
     if (cotEnabled) {
@@ -1413,7 +1412,7 @@ function finalReplyState(progress: LazyProgressStream, state: RunState): RunStat
   return {
     ...state,
     blocks: state.finalText ? [{ kind: 'text', content: state.finalText, streaming: false }] : [],
-    reasoning: { content: '', active: false },
+    reasoning: { content: '', active: false, segments: 0 },
     footer: null,
     terminal: 'done',
     errorMsg: undefined,

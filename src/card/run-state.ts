@@ -20,7 +20,7 @@ export type Terminal = 'running' | 'done' | 'interrupted' | 'error' | 'idle_time
 export interface RunState {
   blocks: Block[];
   finalText?: string;
-  reasoning: { content: string; active: boolean };
+  reasoning: { content: string; active: boolean; segments: number };
   footer: FooterStatus;
   terminal: Terminal;
   errorMsg?: string;
@@ -31,7 +31,8 @@ export interface RunState {
 
 export const initialState: RunState = {
   blocks: [],
-  reasoning: { content: '', active: false },
+  // segments: count of distinct thinking bursts (💭 in the aiduCAT panel).
+  reasoning: { content: '', active: false, segments: 0 },
   footer: 'thinking',
   terminal: 'running',
 };
@@ -67,9 +68,16 @@ export function reduce(state: RunState, evt: AgentEvent): RunState {
       return { ...state, finalText: evt.content };
 
     case 'thinking': {
+      // A new thinking burst (previous burst was closed by text/tool) bumps
+      // the segment counter shown as 💭 count in the aiduCAT meta panel.
+      const startedNewSegment = !state.reasoning.active;
       return {
         ...state,
-        reasoning: { content: state.reasoning.content + evt.delta, active: true },
+        reasoning: {
+          content: state.reasoning.content + evt.delta,
+          active: true,
+          segments: state.reasoning.segments + (startedNewSegment ? 1 : 0),
+        },
         footer: 'thinking',
       };
     }

@@ -71,7 +71,7 @@ describe('COT event mapping', () => {
         { kind: 'tool', tool: { id: 'tool', name: 'command_execution', input: {}, status: 'done' } },
         { kind: 'text', content: 'final', streaming: false },
       ],
-      reasoning: { content: 'hidden', active: true },
+      reasoning: { content: 'hidden', active: true, segments: 1 },
       footer: 'streaming',
       terminal: 'done',
     };

@@ -6,13 +6,14 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
     "elements": [
       {
         "border": {
-          "color": "blue",
+          "color": "grey",
           "corner_radius": "5px",
         },
         "elements": [
           {
-            "content": "- 💻 **Bash** — pwd
-- 📖 **Read** — /repo/a.ts",
+            "content": "- ✏️ **Edit** — /repo/a.ts
+- 📖 **Read** — /repo/a.ts
+- 💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -27,40 +28,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "☕ **2 个工具调用**",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
-      },
-      {
-        "border": {
-          "color": "grey",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "**File** \`/repo/a.ts\`
-
-_运行中…_",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": true,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "✏️ **Edit** — /repo/a.ts",
+            "content": "🐱 🧰 3",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -108,45 +76,14 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
     "elements": [
       {
         "border": {
-          "color": "blue",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "- 💻 **Bash** — pwd
-- 📖 **Read** — /repo/a.ts
-- ✏️ **Edit** — /repo/a.ts",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "☕ **3 个工具调用（已结束）**",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
-      },
-      {
-        "border": {
           "color": "grey",
           "corner_radius": "5px",
         },
         "elements": [
           {
-            "content": "- 🏁 状态：已完成",
+            "content": "- ✏️ **Edit** — /repo/a.ts
+- 📖 **Read** — /repo/a.ts
+- 💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -161,7 +98,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "📋 **运行信息**",
+            "content": "🧰 3",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -198,7 +135,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
             "text_size": "notation",
           },
         ],
-        "expanded": true,
+        "expanded": false,
         "header": {
           "icon": {
             "size": "16px 16px",
@@ -208,7 +145,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "💭 **思考中…**",
+            "content": "🐱 💭 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -280,38 +217,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "💭 **思考过程（点击展开）**",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
-      },
-      {
-        "border": {
-          "color": "grey",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "- 🏁 状态：已完成",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "📋 **运行信息**",
+            "content": "💭 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -337,35 +243,9 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "body": {
     "elements": [
       {
-        "border": {
-          "color": "grey",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "- 🏁 状态：已完成",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "📋 **运行信息**",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
+        "content": "_（未返回内容）_",
+        "tag": "markdown",
+        "text_size": "notation",
       },
     ],
   },
@@ -383,6 +263,37 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
 {
   "body": {
     "elements": [
+      {
+        "border": {
+          "color": "grey",
+          "corner_radius": "5px",
+        },
+        "elements": [
+          {
+            "content": "⚠️ process failed",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+        ],
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "follow_text",
+          "title": {
+            "content": "❌",
+            "tag": "markdown",
+          },
+          "vertical_align": "center",
+        },
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
+      },
       {
         "content": "⚠️ agent 失败：process failed",
         "tag": "markdown",
@@ -530,12 +441,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "**Command**
-\`\`\`bash
-pwd
-\`\`\`
-
-_运行中…_",
+            "content": "- 💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -550,7 +456,7 @@ _运行中…_",
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "💻 **Bash** — pwd",
+            "content": "🐱 🧰 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -603,15 +509,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "**Command**
-\`\`\`bash
-pwd
-\`\`\`
-
-**Output**
-\`\`\`
-/repo
-\`\`\`",
+            "content": "- 💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -626,38 +524,7 @@ pwd
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "💻 **Bash** — pwd",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
-      },
-      {
-        "border": {
-          "color": "grey",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "- 🏁 状态：已完成",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "📋 **运行信息**",
+            "content": "🧰 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -684,48 +551,12 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "elements": [
       {
         "border": {
-          "color": "red",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "**File** \`/missing.ts\`
-
-**Error**
-\`\`\`
-ENOENT
-\`\`\`",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "📖 **Read** — /missing.ts ❌",
-            "tag": "markdown",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
-      },
-      {
-        "border": {
           "color": "grey",
           "corner_radius": "5px",
         },
         "elements": [
           {
-            "content": "- 🏁 状态：已完成",
+            "content": "- 📖 **Read** — /missing.ts ❌",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -740,7 +571,7 @@ ENOENT
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "📋 **运行信息**",
+            "content": "🧰 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
