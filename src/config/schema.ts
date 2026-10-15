@@ -203,7 +203,9 @@ export function secretKeyForApp(appId: string): string {
  * (which sets `messageReplyMigrated: true`), we map their `text` →
  * `markdown` so the behavior stays the same after upgrade.
  *
- * Default for fresh configs (no `messageReply` set) is `'markdown'`.
+ * aiduCAT: default is `'card'` — the whole fork exists for the aiduPOP-style
+ * streaming card (answer first, collapsible tool/reasoning/meta panels).
+ * Upstream lark-coding-agent-bridge defaulted to `'markdown'`.
  */
 export function getMessageReplyMode(cfg: AppConfig): MessageReplyMode {
   const raw = cfg.preferences?.messageReply;
@@ -211,7 +213,7 @@ export function getMessageReplyMode(cfg: AppConfig): MessageReplyMode {
     return 'markdown';
   }
   if (raw === 'card' || raw === 'markdown' || raw === 'text') return raw;
-  return 'markdown';
+  return 'card';
 }
 
 /** Resolve the show-tool-calls preference with default fallback. */

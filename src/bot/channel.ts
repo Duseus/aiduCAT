@@ -1090,19 +1090,9 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
       : {}),
   };
 
-  // aiduCAT: send an "aiduCATing…" plain-text ack right away (mirrors the
-  // Hangzhou aiduPOP "Hermesing…" cue), never blocking the agent stream.
-  // Skipped for pure-emoji / empty inputs which are ignored anyway.
-  const aiduCATAck =
-    lastMsg.content.trim().length > 0
-      ? channel
-          .send(chatId, { text: '🐱 aiduCATing…' }, { replyTo: lastMsg.messageId })
-          .catch((err) =>
-            log.warn('aiducat', 'ack-failed', {
-              err: err instanceof Error ? err.message : String(err),
-            }),
-          )
-      : undefined;
+  // aiduCAT: no plain-text ack. (An earlier "aiduCATing…" cue was dropped —
+  // the streaming card's own status footer already signals liveness, and the
+  // extra bubble carried a replyTo which rendered as "回复 xxx" quotes.)
 
   // For non-card modes Claude's output doesn't surface visually until either
   // a first streamed token (markdown mode) or the whole run ends (text mode).
