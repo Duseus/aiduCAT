@@ -1,7 +1,7 @@
 # aiduCAT☤爱嘟可爱糖 — Claude-code Agent Texting · 飞书泡波流式卡
 
 <p align="center">
-  <img src="docs/images/aiducat-banner-wide.jpg" alt="aiduCAT 爱嘟可爱糖 · 泡波样式横幅（与 aiduPOP 同款）" width="100%">
+  <img src="docs/images/aidububble-banner.webp" alt="aiduCAT 爱嘟可爱糖 · 泡波横幅（aidu 家族同款）" width="100%">
 </p>
 
 > **aiduCAT = Claude-code Agent Texting ——一只住在飞书里的猫，随时替你敲代码**
