@@ -82,12 +82,11 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
   const tools = state.blocks.filter((b): b is Extract<Block, { kind: 'tool' }> => b.kind === 'tool');
   const hasReasoning = state.reasoning.content.trim().length > 0;
   const hasError = state.terminal === 'error' && !!state.errorMsg;
-  const running = state.terminal === 'running';
 
   const meta = metaHeader(state, options);
   if (!hasReasoning && tools.length === 0 && !meta) return null;
 
-  const title = [running ? '🐱' : null, meta].filter(Boolean).join(' ');
+  const title = meta;
 
   const bodyParts: string[] = [];
   if (hasError) bodyParts.push(`⚠️ ${state.errorMsg}`);

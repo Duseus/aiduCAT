@@ -28,7 +28,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🐱 🫧 3",
+            "content": "🫧 3",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -145,7 +145,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🐱 🌊 1",
+            "content": "🌊 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -456,7 +456,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🐱 🫧 1",
+            "content": "🫧 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
