@@ -1099,7 +1099,13 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
   // post and 猴哥 wants the emoji on his message as the "已启动" signal.
   // Removed after the reply via the `finally` cleanup below; never let this
   // outbound call block agent event draining.
-  const reactionPromise = addWorkingReaction(channel, lastMsg.messageId);
+  // aiduCAT: add the "Typing" (敲键盘) reaction as the instant liveness cue the
+  // moment the command lands. Once actual run output starts arriving (card
+  // mode: first state update in the stream loop below), it's removed early —
+  // 猴哥: "一旦开始了下面的工作，我的消息下的这个飞书表情就可以消失了".
+  // Fallback removal still happens in the `finally` cleanup below; never let
+  // this outbound call block agent event draining.
+  let reactionPromise = addWorkingReaction(channel, lastMsg.messageId);
 
   try {
     if (cotEnabled) {
@@ -1184,6 +1190,18 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
         recordSession,
         async (state) => {
           latestState = state;
+          // aiduCAT: the Typing reaction is only the "已启动" cue. The moment
+          // real work shows up on the card (first thinking/tool/text update),
+          // drop it — the streaming card itself carries liveness from here.
+          if (
+            reactionPromise &&
+            (state.reasoning.content.trim() ||
+              state.blocks.length > 0 ||
+              state.finalText)
+          ) {
+            scheduleWorkingReactionCleanup(channel, lastMsg.messageId, reactionPromise);
+            reactionPromise = Promise.resolve(undefined);
+          }
           if (shouldOpenProgressStream(filterForPrefs(state))) progress.ensureOpen();
           if (cardCtrl) {
             await cardCtrl.update(renderCard(filterForPrefs(state), cardRenderOptions));
