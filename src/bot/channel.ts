@@ -783,6 +783,23 @@ async function intakeMessage(deps: IntakeDeps): Promise<void> {
     return;
   }
 
+  // aiduCAT: ignore pure-emoji / sticker-style messages — never trigger a run.
+  // (Spec: the bot must not respond to reactions.) Empty or emoji-only text
+  // with no attachments and no explicit command falls through silently.
+  const rawText = emsg.content.trim();
+  const isEmojiOnly =
+    rawText.length > 0 &&
+    !/\p{L}|\p{N}/u.test(rawText.slice(0, 64)) && // no letters/digits at all
+    emsg.resources.length === 0;
+  if (isEmojiOnly) {
+    log.info('intake', 'emoji-only-ignored', { scope, len: rawText.length });
+    return;
+  }
+  if (rawText.length === 0 && emsg.resources.length === 0) {
+    log.info('intake', 'empty-ignored', { scope });
+    return;
+  }
+
   const size = pending.push(scope, emsg);
   log.info('intake', 'queued', { scope, queueSize: size, debounceMs: DEBOUNCE_MS });
 }
@@ -932,10 +949,12 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
   // For topic groups: thread the reply so it lands in the same topic as the
   // user's message. Otherwise the SDK posts at top level and the user's
   // topic discussion breaks visually.
-  const sendOpts = {
-    replyTo: lastMsg.messageId,
-    ...(mode === 'topic' && threadId ? { replyInThread: true } : {}),
-  };
+  // aiduCAT: drop the quote ("回复 xxx") decoration in p2p chats — cards
+  // should stand alone. Topic groups keep threading so replies land in-topic.
+  const sendOpts: { replyTo?: string; replyInThread?: boolean } =
+    mode === 'topic' && threadId
+      ? { replyTo: lastMsg.messageId, replyInThread: true }
+      : {};
   log.info('flush', 'reply-target', {
     scope,
     mode,
@@ -1051,20 +1070,39 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
     if (getShowToolCalls(controls.cfg)) return state;
     return { ...state, blocks: state.blocks.filter((b) => b.kind !== 'tool') };
   };
-  const cardRenderOptions = callbackAuth
-    ? {
-        signCallback: (action: string) =>
-          callbackAuth.sign({
-            runId: execution.runId,
-            scope,
-            chatId,
-            operatorOpenId: firstMsg.senderId,
-            action,
-            policyFingerprint: flow.policy.policyFingerprint,
-            ttlMs: 24 * 60 * 60 * 1000,
-          }),
-      }
-    : {};
+  const cardRenderOptions: import('../card/run-renderer').RunCardRenderOptions = {
+    // aiduCAT: surface model + start time in the meta panel.
+    model: modelSelection,
+    startedAt: Date.now(),
+    ...(callbackAuth
+      ? {
+          signCallback: (action: string) =>
+            callbackAuth.sign({
+              runId: execution.runId,
+              scope,
+              chatId,
+              operatorOpenId: firstMsg.senderId,
+              action,
+              policyFingerprint: flow.policy.policyFingerprint,
+              ttlMs: 24 * 60 * 60 * 1000,
+            }),
+        }
+      : {}),
+  };
+
+  // aiduCAT: send an "aiduCATing…" plain-text ack right away (mirrors the
+  // Hangzhou aiduPOP "Hermesing…" cue), never blocking the agent stream.
+  // Skipped for pure-emoji / empty inputs which are ignored anyway.
+  const aiduCATAck =
+    lastMsg.content.trim().length > 0
+      ? channel
+          .send(chatId, { text: '🐱 aiduCATing…' }, { replyTo: lastMsg.messageId })
+          .catch((err) =>
+            log.warn('aiducat', 'ack-failed', {
+              err: err instanceof Error ? err.message : String(err),
+            }),
+          )
+      : undefined;
 
   // For non-card modes Claude's output doesn't surface visually until either
   // a first streamed token (markdown mode) or the whole run ends (text mode).
@@ -1447,7 +1485,7 @@ async function sendFinalReply(input: {
   scope: string;
   state: RunState;
   replyMode: ReturnType<typeof getMessageReplyMode>;
-  sendOpts: { replyTo: string; replyInThread?: boolean };
+  sendOpts: { replyTo?: string; replyInThread?: boolean };
   cardRenderOptions: { signCallback?: (action: string) => string };
 }): Promise<void> {
   const body = renderText(input.state);
@@ -1499,7 +1537,7 @@ async function sendCotDegradedNotice(input: {
   channel: LarkChannel;
   chatId: string;
   scope: string;
-  sendOpts: { replyTo: string; replyInThread?: boolean };
+  sendOpts: { replyTo?: string; replyInThread?: boolean };
   reason: string;
 }): Promise<void> {
   log.warn('cot', 'degraded', {

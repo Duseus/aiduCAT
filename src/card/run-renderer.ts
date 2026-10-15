@@ -17,24 +17,37 @@ type Group = ToolGroup | TextGroup;
 
 export interface RunCardRenderOptions {
   signCallback?: (action: string) => string;
+  /** aiduCAT: model name shown in the meta panel (e.g. Gemini-3.8-Flash). */
+  model?: string;
+  /** aiduCAT: epoch ms when the run started, for elapsed-time in meta panel. */
+  startedAt?: number;
 }
 
 export function renderCard(state: RunState, options: RunCardRenderOptions = {}): object {
   const elements: object[] = [];
+
+  // aiduCAT: answer (text blocks) first, panels below — order fixed by spec.
+  for (const group of groupBlocks(state.blocks)) {
+    if (group.kind === 'text') {
+      if (group.content.trim()) {
+        elements.push(markdown(group.content));
+      }
+    }
+  }
 
   if (state.reasoning.content) {
     elements.push(reasoningPanel(state.reasoning.content, state.reasoning.active));
   }
 
   for (const group of groupBlocks(state.blocks)) {
-    if (group.kind === 'text') {
-      if (group.content.trim()) {
-        elements.push(markdown(group.content));
-      }
-    } else {
+    if (group.kind === 'tools') {
       elements.push(...renderToolGroup(group.tools, state.terminal !== 'running'));
     }
   }
+
+  // aiduCAT: collapsible meta panel (model / elapsed) — always last, collapsed.
+  const metaPanel = metaPanelMd(state, options);
+  if (metaPanel) elements.push(metaPanel);
 
   if (state.terminal === 'interrupted') {
     elements.push(noteMd('_⏹ 已被中断_'));
@@ -98,7 +111,8 @@ function renderToolGroup(tools: ToolEntry[], finalized: boolean): object[] {
 }
 
 function reasoningPanel(content: string, active: boolean): object {
-  const title = active ? '🧠 **思考中**' : '🧠 **思考完成，点击查看**';
+  // aiduCAT: aligned with Hangzhou aiduPOP emoji layout.
+  const title = active ? '💭 **思考中…**' : '💭 **思考过程（点击展开）**';
   return collapsiblePanel({
     title,
     expanded: active,
@@ -202,6 +216,29 @@ function footerStatus(status: Exclude<FooterStatus, null>): object {
         ? '🧰 正在调用工具'
         : '✍️ 正在输出';
   return noteMd(text);
+}
+
+/**
+ * aiduCAT meta panel: model + elapsed time in a collapsed collapsible_panel.
+ * Hidden entirely when we have neither model nor a terminal state worth
+ * reporting — keeps short answers visually clean.
+ */
+function metaPanelMd(state: RunState, options: RunCardRenderOptions): object | null {
+  const lines: string[] = [];
+  if (options.model) lines.push(`- 🤖 模型：**${options.model}**`);
+  if (options.startedAt) {
+    const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
+    const label = secs >= 60 ? `${Math.floor(secs / 60)} 分 ${secs % 60} 秒` : `${secs} 秒`;
+    lines.push(`- ⏱ 耗时：${label}`);
+  }
+  if (state.terminal === 'done') lines.push(`- 🏁 状态：已完成`);
+  if (lines.length === 0) return null;
+  return collapsiblePanel({
+    title: '📋 **运行信息**',
+    expanded: false,
+    border: 'grey',
+    body: lines.join('\n'),
+  });
 }
 
 function summaryText(state: RunState): string {
