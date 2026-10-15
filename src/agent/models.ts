@@ -64,7 +64,13 @@ export function normalizeModelSelection(
   agentKind: AgentKind,
   value: string | undefined,
 ): string {
-  if (isDefaultModel(value)) return DEFAULT_MODEL;
+  if (isDefaultModel(value) || value === undefined) return DEFAULT_MODEL;
+  // aiduCAT: free-form model ids are legitimate here — behind a gateway
+  // (10router) the useful names are combo ids outside the hardcoded picker
+  // catalog (`Gemini-3.8-Flash`, `claude-opus-4-6-thinking`, …). Any
+  // non-default stored value passes through; only the /config form picker
+  // (which needs exact option-value matches for select_static) clamps.
+  if (/^[\w.:-]{1,120}$/.test(value)) return value;
   return supportedModels(agentKind).some((m) => m.value === value)
     ? (value as string)
     : DEFAULT_MODEL;
