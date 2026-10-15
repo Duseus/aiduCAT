@@ -5,6 +5,10 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
   "body": {
     "elements": [
       {
+        "content": "🫧Poping…",
+        "tag": "markdown",
+      },
+      {
         "border": {
           "color": "grey",
           "corner_radius": "5px",
@@ -28,7 +32,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🫧Poping… · 🫧 3",
+            "content": "🫧 3",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -105,6 +109,10 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
   "body": {
     "elements": [
       {
+        "content": "🌊Waving…",
+        "tag": "markdown",
+      },
+      {
         "border": {
           "color": "grey",
           "corner_radius": "5px",
@@ -126,7 +134,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🌊Waving… · 🌊 1",
+            "content": "🌊 1",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -314,36 +322,8 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
   "body": {
     "elements": [
       {
-        "border": {
-          "color": "grey",
-          "corner_radius": "5px",
-        },
-        "elements": [
-          {
-            "content": "_（无过程记录）_",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-        ],
-        "expanded": false,
-        "header": {
-          "icon": {
-            "size": "16px 16px",
-            "tag": "standard_icon",
-            "token": "down-small-ccm_outlined",
-          },
-          "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
-          "title": {
-            "content": "🌊Waving…",
-            "tag": "markdown",
-            "text_size": "notation",
-          },
-          "vertical_align": "center",
-        },
-        "padding": "8px 8px 8px 8px",
-        "tag": "collapsible_panel",
-        "vertical_spacing": "8px",
+        "content": "🌊Waving…",
+        "tag": "markdown",
       },
     ],
   },
@@ -394,6 +374,10 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
   "body": {
     "elements": [
       {
+        "content": "🫧Poping…",
+        "tag": "markdown",
+      },
+      {
         "border": {
           "color": "grey",
           "corner_radius": "5px",
@@ -415,7 +399,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🫧Poping… · 🫧 1",
+            "content": "🫧 1",
             "tag": "markdown",
             "text_size": "notation",
           },

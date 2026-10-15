@@ -35,6 +35,20 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
     }
   }
 
+  // aiduCAT: live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…) sits on
+  // its own line above the panel, below the answer, left-aligned — the panel
+  // interior/header stays uniformly clean (猴哥点单 f0.1: panel 里始终保持美观整齐).
+  // It disappears once the run ends — the panel border color carries the result.
+  const statusLine =
+    state.terminal === 'running'
+      ? state.footer === 'tool_running'
+        ? '🫧Poping…'
+        : state.footer === 'streaming'
+          ? '☤aiduCATing…'
+          : '🌊Waving…'
+      : '';
+  if (statusLine) elements.push(markdown(statusLine));
+
   // aiduCAT: one collapsed panel carrying reasoning + every tool call + the
   // run meta header (aiduPOP layout). Hidden when there is nothing to show.
   const popPanel = aiduPopPanel(state, options);
@@ -125,18 +139,9 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
   const pieces: string[] = [];
-  // aiduCAT: while running, the live status word (🌊Waving… / 🫧Poping… /
-  // ☤aiduCATing…) leads the header at the far left; it disappears once the
-  // run ends — the panel border color carries the result from there.
-  if (state.terminal === 'running') {
-    const status =
-      state.footer === 'tool_running'
-        ? '🫧Poping…'
-        : state.footer === 'streaming'
-          ? '☤aiduCATing…'
-          : '🌊Waving…';
-    pieces.push(status);
-  }
+  // aiduCAT f0.1: the live status word moved out of the header — it renders on
+  // its own line above the panel (below the answer, left-aligned) so the panel
+  // header stays uniformly clean at all times.
   if (options.model) pieces.push(`☤ ${options.model}`);
   if (state.reasoning.segments > 0) pieces.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;

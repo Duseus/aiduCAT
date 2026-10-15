@@ -4,7 +4,7 @@ import { homedir } from 'node:os';
 import { dirname, isAbsolute } from 'node:path';
 import type { LarkChannel, NormalizedMessage } from '@larksuite/channel';
 import { claudeCapability, codexCapability } from '../agent/capability';
-import { DEFAULT_MODEL, isDefaultModel, normalizeModelSelection, supportedModels } from '../agent/models';
+import { DEFAULT_MODEL, isDefaultModel, normalizeModelSelection, resolveModelArg, supportedModels } from '../agent/models';
 import type { AgentAdapter } from '../agent/types';
 import type { ActiveRuns } from '../bot/active-runs';
 import {
@@ -22,7 +22,14 @@ import {
   groupMsgScopeGrantedCard,
 } from '../card/config-card';
 import { GROUP_MSG_SCOPE, hasGroupMsgScope } from '../bot/app-scope';
+import { fetchCombos, invalidateComboCache, resolveTenRouterConfig } from '../bot/tenrouter';
 import { requestScopeGrantLink } from '../bot/wizard';
+import {
+  modelCancelledCard,
+  modelCard,
+  modelSavedCard,
+  parseModelCardSubmit,
+} from '../card/model-card';
 import { forgetManagedCard, sendManagedCard, updateManagedCard } from '../card/managed';
 import { helpCard, resumeCard, statusCard, workspacesCard } from '../card/templates';
 import type { AppConfig, AppPreferences, MessageReplyMode, TenantBrand } from '../config/schema';
@@ -340,7 +347,22 @@ async function handleNew(args: string, ctx: CommandContext): Promise<void> {
     });
   }
   ctx.sessions.clear(ctx.scope);
-  await reply(ctx, wasRunning ? '已中断当前任务并开始新会话。' : '已开始新会话。');
+  // aiduCAT: carry a read-only snapshot of the model/effort the new session
+  // will inherit, so the user isn't surprised by a silently-persisted /model
+  // card choice. Display only — changing it still goes through /model.
+  const agentKind = ctx.controls.profileConfig.agentKind;
+  const modelPref = ctx.controls.cfg.preferences?.model;
+  const effortPref = ctx.controls.cfg.preferences?.effort;
+  const snapshot = [
+    modelPref ? `模型 ${resolveModelArg(agentKind, modelPref) ?? modelPref}` : '模型 跟随默认',
+    effortPref ? `effort ${effortPref}` : 'effort 默认',
+  ].join(' · ');
+  await reply(
+    ctx,
+    wasRunning
+      ? `已中断当前任务并开始新会话（沿用：${snapshot}）。`
+      : `已开始新会话（沿用：${snapshot}）。`,
+  );
 }
 
 async function handleNewChat(rawName: string, ctx: CommandContext): Promise<void> {
@@ -1350,20 +1372,113 @@ async function handleHelp(_args: string, ctx: CommandContext): Promise<void> {
  * whitelist on purpose. `/model` with no args shows the current selection.
  */
 async function handleModel(args: string, ctx: CommandContext): Promise<void> {
-  const value = args.trim();
-  const current = ctx.controls.cfg.preferences?.model;
+  const sub = args.trim().split(/\s+/)[0] ?? '';
+  switch (sub) {
+    case '':
+      return showModelCard(ctx);
+    case 'submit':
+      return submitModelCard(ctx);
+    case 'cancel':
+      return cancelModelCard(ctx);
+    default:
+      // Back-compat: `/model <name>` still works for typing diehards, validates
+      // the same free-form rule as before. `/model default` restores.
+      return setModelDirect(args.trim(), ctx);
+  }
+}
 
-  if (!value) {
-    const label = isDefaultModel(current)
-      ? '跟随默认（不传 --model）'
-      : `\`${current}\``;
-    await reply(
-      ctx,
-      `🤖 当前模型:${label}\n\n用法:\n- \`/model <模型名>\` 切换(如 \`/model Gemini-3.8-Flash\`)\n- \`/model default\` 恢复默认(不指定模型)`,
-    );
+/** aiduCAT f0.1: interactive /model card (10router combos + effort). */
+async function showModelCard(ctx: CommandContext): Promise<void> {
+  const tr = await resolveTenRouterConfig(ctx.controls.cfg);
+  const currentModel = ctx.controls.cfg.preferences?.model;
+  const currentEffort = ctx.controls.cfg.preferences?.effort;
+
+  let combos: Array<{ id: string; name: string }> = [];
+  let source: 'live' | 'cached' | 'unavailable' = 'unavailable';
+  if (tr) {
+    const catalog = await fetchCombos(tr);
+    combos = catalog.combos;
+    source = catalog.source;
+  }
+
+  const card = modelCard({
+    combos,
+    currentModel,
+    currentEffort,
+    source,
+  });
+  if (ctx.fromCardAction) await recallMessage(ctx, ctx.msg.messageId);
+  await sendManagedCard(ctx.channel, ctx.msg.chatId, card, commandReplyOptions(ctx));
+}
+
+async function submitModelCard(ctx: CommandContext): Promise<void> {
+  const fv = ctx.formValue ?? {};
+  // Re-fetch combos so the submitted combo can be validated against the live
+  // catalog (a card left open across a combo deletion shouldn't resurrect a
+  // dead name). Falls back to accepting the submitted value when 10router is
+  // unreachable — the user's explicit click wins over a transient outage.
+  const tr = await resolveTenRouterConfig(ctx.controls.cfg);
+  let combos: Array<{ name: string }> = [];
+  if (tr) {
+    const catalog = await fetchCombos(tr);
+    combos = catalog.combos;
+  }
+  const parsed = parseModelCardSubmit(fv, combos);
+  const currentModel = ctx.controls.cfg.preferences?.model;
+  const currentEffort = ctx.controls.cfg.preferences?.effort;
+  const nextModel = parsed.model ?? currentModel;
+  const nextEffort = parsed.effort ?? currentEffort;
+
+  if (!parsed.model && !parsed.effort) {
+    // Both selects empty — the "pick both" rule wasn't satisfied. Re-prompt.
+    await reply(ctx, '⚠️ 模型和推理强度都要选好才能确认;');
     return;
   }
 
+  const preferences: AppPreferences = {
+    ...(ctx.controls.cfg.preferences ?? {}),
+    model: nextModel,
+    effort: nextEffort,
+  };
+  try {
+    await configOps.savePreferencesConfig(
+      ctx.controls,
+      preferences,
+      getRequireMentionInGroup(ctx.controls.cfg),
+      ctx.controls.profileConfig.larkCli.identityPreset,
+      ctx.controls.profileConfig.mode,
+    );
+  } catch (err) {
+    log.fail('command', err, { cmd: '/model submit' });
+    await reply(ctx, '❌ 模型/强度保存失败,详情见日志。');
+    return;
+  }
+  invalidateComboCache();
+  log.info('command', 'model-set', { model: nextModel ?? 'default', effort: nextEffort ?? 'default', via: 'card' });
+
+  const formMsgId = ctx.msg.messageId;
+  void (async () => {
+    await new Promise((r) => setTimeout(r, FORM_SETTLE_MS));
+    await showResultCardInPlace(
+      ctx,
+      formMsgId,
+      modelSavedCard(nextModel ?? '跟随默认', nextEffort ?? '默认'),
+    );
+  })();
+}
+
+async function cancelModelCard(ctx: CommandContext): Promise<void> {
+  if (ctx.fromCardAction) {
+    const formMsgId = ctx.msg.messageId;
+    void (async () => {
+      await new Promise((r) => setTimeout(r, FORM_SETTLE_MS));
+      await showResultCardInPlace(ctx, formMsgId, modelCancelledCard());
+    })();
+  }
+}
+
+/** Direct-text model switch — kept from f0.1 for `/model <name>` typing. */
+async function setModelDirect(value: string, ctx: CommandContext): Promise<void> {
   if (!/^[\w.:-]{1,120}$/.test(value)) {
     await reply(ctx, '❌ 模型名只能包含字母/数字/`.:-_`,长度 ≤ 120。');
     return;
@@ -1387,7 +1502,7 @@ async function handleModel(args: string, ctx: CommandContext): Promise<void> {
     await reply(ctx, '❌ 模型保存失败,详情见日志。');
     return;
   }
-  log.info('command', 'model-set', { model: next ?? 'default' });
+  log.info('command', 'model-set', { model: next ?? 'default', via: 'text' });
   await reply(
     ctx,
     next === undefined

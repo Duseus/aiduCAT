@@ -115,6 +115,12 @@ export interface AppPreferences {
    */
   model?: string;
   /**
+   * Claude Code reasoning-effort level forwarded as `--effort`. Valid values
+   * (per the claude CLI): low / medium / high / xhigh / max. `undefined` means
+   * "don't pass `--effort`" so the CLI/account default applies. Default: unset.
+   */
+  effort?: string;
+  /**
    * Whether to send a separate Lark COT process message before the final
    * answer. `brief` mirrors the lightweight tool/progress visibility from
    * the legacy tool display; `detailed` also includes tool args/output.
@@ -171,6 +177,17 @@ export interface AppConfig {
   };
   secrets?: SecretsConfig;
   preferences?: AppPreferences;
+  /**
+   * aiduCAT: 10router access for the /model interactive card. When unset, the
+   * card falls back to env AIDU_10ROUTER_URL / AIDU_10ROUTER_TOKEN; when both
+   * are absent the card degrades to the direct-text `/model <name>` flow.
+   * token supports the same SecretInput chain as the app secret (env template
+   * / file / exec) so it never has to sit in config plaintext.
+   */
+  tenRouter?: {
+    url?: string;
+    token?: SecretInput;
+  };
 }
 
 export function isComplete(cfg: Partial<AppConfig>): cfg is AppConfig {

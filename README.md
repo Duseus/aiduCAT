@@ -1,10 +1,12 @@
-# aiduCAT☤ — Feishu × Claude Code Streaming Bubble-Wave Card
+# aiduCAT☤爱嘟可爱糖 — Claude-code Agent Texting on Feishu
 
 <p align="center">
-  <img src="docs/images/aiducat-banner-wide.jpg" alt="aiduCAT · Feishu Claude Code streaming card banner" width="100%">
+  <img src="docs/images/aiducat-banner-wide.jpg" alt="aiduCAT · Claude-code Agent Texting (ASCII/graphic) banner" width="100%">
 </p>
 
-> **Bubble Wave — a cat living inside Feishu, typing code for you**
+> **aiduCAT = Claude-code Agent Texting — a cat living inside Feishu, typing code for you**
+>
+> Palette follows the aidu VI: deep blue `#1F4E79` · dusk gray `#525252` · ink black `#000000` · paper white `#FFFFFF`.
 >
 > **Answer on top, process folded into one small panel, result shown by border color.**
 
@@ -12,7 +14,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20.12%2B-brightgreen.svg)](https://nodejs.org/)
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
-[![aiduCAT](https://img.shields.io/badge/aiduCAT-☤-ff69b4.svg)](https://github.com/monkey2jack/aiduCAT)
+[![aiduCAT](https://img.shields.io/badge/aiduCAT-Claude--code_Agent_Texting-1f4e79.svg)](https://github.com/monkey2jack/aiduCAT)
 
 **[📖 中文](./README.zh.md)** | **English**
 
@@ -23,7 +25,7 @@
 
 ## What is aiduCAT?
 
-**aiduCAT** dresses **Claude Code / Codex CLI** as a Feishu cat — streaming your local coding agent's thinking, tool calls, and final answer into one Feishu card styled after the [aiduPOP](https://github.com/monkey2jack/aiduPOP) Bubble Wave look.
+**aiduCAT** = **Claude-code Agent Texting** — aiduCAT dresses **Claude Code / Codex CLI** as a Feishu cat — streaming your local coding agent's thinking, tool calls, and final answer into one Feishu card styled after the [aiduPOP](https://github.com/monkey2jack/aiduPOP) Bubble Wave look.
 
 aiduCAT originates from and credits the upstream [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge) (npm package `lark-channel-bridge`), an MIT-licensed project. On top of that code, aiduCAT adds a complete **Bubble Wave transformation**:
 

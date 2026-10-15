@@ -2,11 +2,10 @@ import type { LarkChannel } from '@larksuite/channel';
 import { log } from '../core/logger';
 
 /**
- * Add a "Typing" reaction (敲键盘) to a message to give text-mode users an
- * instant "I got your message and I'm responding" cue while Claude is still
- * thinking. Matches the conventional Feishu UX for "the other side is
- * replying". Card mode doesn't need this — the streaming card already
- * shows a "正在思考…" footer the moment it's posted.
+ * Add a "Get" (了解) reaction to a message to give users an instant
+ * "I got your message" cue while Claude is still working. 猴哥钦定 emoji
+ * (aiduCAT f0.1). Card mode doesn't need the thinking footer — the
+ * streaming card already shows live status; the reaction is the arrival cue.
  *
  * Returns the reaction id on success, undefined on any failure. Failures
  * are logged but never thrown — losing a decoration must not break the
@@ -17,7 +16,7 @@ export async function addWorkingReaction(
   messageId: string,
 ): Promise<string | undefined> {
   try {
-    const id = await channel.addReaction(messageId, 'Typing');
+    const id = await channel.addReaction(messageId, 'Get');
     if (id) log.info('reaction', 'added', { messageId, reactionId: id });
     return id;
   } catch (err) {
