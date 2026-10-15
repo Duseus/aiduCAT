@@ -8,7 +8,7 @@
 >
 > **答案在上，过程收进一只小面板，结果看边框颜色。**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/monkey2jack/aiduCAT)
+[![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20.12%2B-brightgreen.svg)](https://nodejs.org/)
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
@@ -118,3 +118,72 @@ aiduCAT kill <id|#>
 ## License
 
 [MIT](./LICENSE)
+
+## 运行时说明
+
+### 按 profile 的服务与 CLI
+
+守护进程为每个 PersonalAgent 应用安装一个**按 profile 的服务（per-profile service）**：macOS launchd `ai.lark-channel-bridge.bot.<profile>`、Linux systemd `lark-channel-bridge.bot.<profile>.service`、Windows 计划任务 `LarkChannelBridge.Bot.<profile>`（经 `.cmd` 包装启动）。宿主机 CLI 参考：
+
+```bash
+aiduCAT profile create claude --agent claude
+aiduCAT profile create codex --agent codex
+aiduCAT profile list
+aiduCAT profile use <name>
+aiduCAT profile remove <name>            # 归档本地状态
+aiduCAT profile remove <name> --purge --yes
+aiduCAT profile export <name> [--output ./profile.json] [--force]
+aiduCAT profile export <name> --include-secrets --yes
+```
+
+### 会话内访问控制
+
+私聊无需 @；群与话题默认需要 `@bot`。直接在聊天里管理访问：
+
+```text
+/invite user @name     允许某用户私聊
+/invite admin @name    添加访问控制管理员
+/invite group          允许某个群
+/invite all group      允许所有群
+/remove user @name
+/remove admin @name
+/remove group
+```
+
+### 云文档评论
+
+云文档评论按文档权限生效（document-scoped）：评论触发的运行跟随文档本身的权限，而不是单独的访问闸门。在受支持的文档评论中 @ 机器人即可运行。
+
+### lark-cli 身份策略
+
+每个 profile 使用独立的**当前 profile 的 lark-cli 目录**：`~/.lark-channel/profiles/<profile>/lark-cli`。agent 进程会拿到指向该目录的 `LARKSUITE_CLI_CONFIG_DIR`，因此一个 profile 里的个人授权不会被另一个 profile 共享。默认策略 `bot-only`；`/config` 可把已授权用户切到 `user-default`。`/status` 显示摘要（`lark-cli: app` / `lark-cli: user-ready`）。
+
+这套 **lark-cli 身份策略**是按 profile 隔离的，不是全局的。
+
+### 工作目录与工作区
+
+每个 profile 可通过 `workspaces.default` 定义默认工作目录。`/cd` 切换当前目录并重置会话；`/ws` 保存并复用命名工作区（`/ws list`、`/ws save <name>`、`/ws use <name>`、`/ws remove <name>`）。工作目录只是 agent 的当前目录，不是文件系统沙箱 —— 实际文件访问仍取决于本地 agent 进程及其权限模式。
+
+### 权限（permissions）
+
+访问由标准的 `"permissions"` 块控制：
+
+```json
+{
+  "permissions": {
+    "defaultAccess": "full",
+    "maxAccess": "full"
+  }
+}
+```
+
+把任一值设为 `workspace` 或 `read-only` 可收紧 profile。旧版 `sandbox` 配置键已不再读取（legacy `sandbox` keys are ignored）。
+
+### 开发
+
+```bash
+pnpm install
+pnpm test
+pnpm typecheck
+pnpm build
+```

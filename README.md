@@ -8,7 +8,7 @@
 >
 > **Answer on top, process folded into one small panel, result shown by border color.**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/monkey2jack/aiduCAT)
+[![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20.12%2B-brightgreen.svg)](https://nodejs.org/)
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
@@ -118,3 +118,72 @@ One card, three parts:
 ## License
 
 [MIT](./LICENSE)
+
+## Runtime notes
+
+### Per-profile service and CLI
+
+The daemon installs one **per-profile service** per PersonalAgent app: macOS launchd `ai.lark-channel-bridge.bot.<profile>`, Linux systemd `lark-channel-bridge.bot.<profile>.service`, Windows Task Scheduler `LarkChannelBridge.Bot.<profile>` via a `.cmd` wrapper. Host CLI reference:
+
+```bash
+aiduCAT profile create claude --agent claude
+aiduCAT profile create codex --agent codex
+aiduCAT profile list
+aiduCAT profile use <name>
+aiduCAT profile remove <name>            # archive local state
+aiduCAT profile remove <name> --purge --yes
+aiduCAT profile export <name> [--output ./profile.json] [--force]
+aiduCAT profile export <name> --include-secrets --yes
+```
+
+### Access control in chat
+
+DMs do not require an @ mention; groups and topics require `@bot` by default. Manage access from chat itself:
+
+```text
+/invite user @name     allow a user in DMs
+/invite admin @name    add an access-control admin
+/invite group          allow a group
+/invite all group      allow all groups
+/remove user @name
+/remove admin @name
+/remove group
+```
+
+### Cloud-doc comments
+
+Cloud-doc comments are document-scoped: a comment run follows the document's own permissions rather than a separate access gate. Mention the bot in a supported doc's comment to run.
+
+### lark-cli identity policy
+
+Each profile uses a profile-local lark-cli directory at `~/.lark-channel/profiles/<profile>/lark-cli`. The agent process receives `LARKSUITE_CLI_CONFIG_DIR` for that directory, so personal authorization in one profile is never shared with another. The default policy is `bot-only`; `/config` can switch an authorized user to `user-default`. `/status` shows the summary (`lark-cli: app` / `lark-cli: user-ready`).
+
+This **lark-cli identity policy** is per profile, not global.
+
+### Working directories
+
+Each profile may define a default workspace through `workspaces.default`. `/cd` switches the current directory and resets the session; `/ws` saves and reuses named workspaces (`/ws list`, `/ws save <name>`, `/ws use <name>`, `/ws remove <name>`). The directory is the agent's current working directory, not a filesystem sandbox — file access still depends on the local agent process and its permission mode.
+
+### Permissions
+
+Access is controlled by the canonical `"permissions"` block:
+
+```json
+{
+  "permissions": {
+    "defaultAccess": "full",
+    "maxAccess": "full"
+  }
+}
+```
+
+Set either value to `workspace` or `read-only` to tighten a profile. The legacy `sandbox` config keys are no longer read.
+
+### Development
+
+```bash
+pnpm install
+pnpm test
+pnpm typecheck
+pnpm build
+```
