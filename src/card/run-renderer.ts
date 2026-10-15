@@ -40,14 +40,10 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   const popPanel = aiduPopPanel(state, options);
   if (popPanel) elements.push(popPanel);
 
-  if (state.terminal === 'interrupted') {
-    elements.push(noteMd('⭕️Stop'));
-  } else if (state.terminal === 'idle_timeout') {
-    const mins = state.idleTimeoutMinutes ?? 0;
-    elements.push(noteMd(`⚠️${mins} min no response`));
-  } else if (state.terminal === 'error' && state.errorMsg) {
-    elements.push(noteMd(`❌Error: ${state.errorMsg}`));
-  } else if (state.terminal === 'done' && elements.length === 0) {
+  // aiduCAT: terminal state is expressed by the panel border color (aiduPOP
+  // style) — 完成绿 / 停止黄 / 出错红 — not by a trailing text note. Keep an
+  // empty-answer fallback note so a streamed card is never fully empty.
+  if (state.terminal === 'done' && elements.length === 0) {
     elements.push(noteMd('🚫Nothing'));
   }
 
@@ -107,9 +103,19 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
   return collapsiblePanel({
     title,
     expanded: false,
-    border: 'grey',
+    // aiduCAT: border color carries the terminal state (aiduPOP style) —
+    // running/none grey, done green, stopped/timeout yellow, error red.
+    border: panelBorderColor(state),
     body: bodyParts.join('\n\n') || '_（无过程记录）_',
   });
+}
+
+/** aiduCAT: 完成绿 / 停止黄 / 出错红 / 运行或无过程灰。 */
+function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' {
+  if (state.terminal === 'done') return 'green';
+  if (state.terminal === 'interrupted' || state.terminal === 'idle_timeout') return 'yellow';
+  if (state.terminal === 'error') return 'red';
+  return 'grey';
 }
 
 /**
@@ -161,7 +167,7 @@ function toolPanel(tool: ToolEntry, expanded: boolean): object {
 interface PanelOpts {
   title: string;
   expanded: boolean;
-  border: 'grey' | 'red' | 'blue';
+  border: 'grey' | 'red' | 'blue' | 'green' | 'yellow';
   body: string;
 }
 

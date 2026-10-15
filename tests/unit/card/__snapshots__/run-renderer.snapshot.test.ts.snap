@@ -76,7 +76,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
     "elements": [
       {
         "border": {
-          "color": "grey",
+          "color": "green",
           "corner_radius": "5px",
         },
         "elements": [
@@ -197,7 +197,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
       },
       {
         "border": {
-          "color": "grey",
+          "color": "green",
           "corner_radius": "5px",
         },
         "elements": [
@@ -265,7 +265,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
     "elements": [
       {
         "border": {
-          "color": "grey",
+          "color": "red",
           "corner_radius": "5px",
         },
         "elements": [
@@ -294,11 +294,6 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
-      {
-        "content": "❌Error: process failed",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
     ],
   },
   "config": {
@@ -319,11 +314,6 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "content": "partial",
         "tag": "markdown",
       },
-      {
-        "content": "⭕️Stop",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
     ],
   },
   "config": {
@@ -343,11 +333,6 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
       {
         "content": "partial",
         "tag": "markdown",
-      },
-      {
-        "content": "⚠️15 min no response",
-        "tag": "markdown",
-        "text_size": "notation",
       },
     ],
   },
@@ -504,7 +489,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "elements": [
       {
         "border": {
-          "color": "grey",
+          "color": "green",
           "corner_radius": "5px",
         },
         "elements": [
@@ -551,7 +536,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "elements": [
       {
         "border": {
-          "color": "grey",
+          "color": "green",
           "corner_radius": "5px",
         },
         "elements": [
