@@ -120,14 +120,14 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
   const pieces: string[] = [];
-  if (options.model) pieces.push(`🤖 ${options.model}`);
-  if (state.reasoning.segments > 0) pieces.push(`💭 ${state.reasoning.segments}`);
+  if (options.model) pieces.push(`☤ ${options.model}`);
+  if (state.reasoning.segments > 0) pieces.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  if (toolCount > 0) pieces.push(`🧰 ${toolCount}`);
+  if (toolCount > 0) pieces.push(`🫧 ${toolCount}`);
   if (options.startedAt) {
     const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
     const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
-    pieces.push(`⏱ ${label}`);
+    pieces.push(`✨ ${label}`);
   }
   if (state.terminal === 'error') pieces.push('❌');
   return pieces.join(' · ');
