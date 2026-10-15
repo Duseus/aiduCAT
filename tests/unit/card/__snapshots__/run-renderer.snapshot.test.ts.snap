@@ -30,6 +30,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "title": {
             "content": "🫧Poping… · 🫧 3",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -79,6 +80,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "title": {
             "content": "🫧 3",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -126,6 +128,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "title": {
             "content": "🌊Waving… · 🌊 1",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -177,6 +180,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
           "title": {
             "content": "🌊 1",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -245,6 +249,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "title": {
             "content": "❌",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -332,6 +337,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
           "title": {
             "content": "🌊Waving…",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -411,6 +417,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "title": {
             "content": "🫧Poping… · 🫧 1",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -458,6 +465,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "title": {
             "content": "🫧 1",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },
@@ -505,6 +513,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "title": {
             "content": "🫧 1",
             "tag": "markdown",
+            "text_size": "notation",
           },
           "vertical_align": "center",
         },

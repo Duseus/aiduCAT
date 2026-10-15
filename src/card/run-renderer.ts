@@ -196,7 +196,10 @@ function collapsiblePanel(opts: PanelOpts): object {
 
 function panelHeader(titleMd: string): object {
   return {
-    title: { tag: 'markdown', content: titleMd },
+    // aiduCAT: text_size=notation shrinks the collapsed header title to match
+    // aiduPOP's small panel type (verified live: <font> tags are ignored on
+    // panel headers, text_size on the title markdown is not).
+    title: { tag: 'markdown', content: titleMd, text_size: 'notation' },
     vertical_align: 'center',
     icon: { tag: 'standard_icon', token: 'down-small-ccm_outlined', size: '16px 16px' },
     icon_position: 'follow_text',
