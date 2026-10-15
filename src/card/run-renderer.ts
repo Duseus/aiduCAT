@@ -1,6 +1,6 @@
 import { deepMaskEmails } from './mask-email';
 import type { Block, FooterStatus, RunState, ToolEntry } from './run-state';
-import { toolBodyMd, toolHeaderText } from './tool-render';
+import { toolBodyMd, toolHeaderPlain, toolHeaderText } from './tool-render';
 
 const REASONING_MAX = 1500;
 const COLLAPSE_TOOL_THRESHOLD = 3;
@@ -70,13 +70,13 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
 
 /**
  * aiduCAT single panel (aiduPOP layout): the collapsed header carries only
- * `🤖 model · 💭 thinking-count · 🧰 tool-count · ⏱ elapsed`, and the body
+ * `☤ model · 🌊 thinking-count · 🫧 tool-count · ✨ elapsed`, and the body
  * holds the thinking text plus one entry per tool call. Rendered below the
  * answer; omitted entirely for a run with no reasoning, tools, or meta.
  *
- * While running, the header shows a live 🐱 bat signal before the meta (so
- * the user can see it working even with zero tools yet); on completion the
- * signal is dropped and the counts/values are final.
+ * While running, the footer already carries the live status line, so the
+ * collapsed header stays pure meta (counts + elapsed); on completion the
+ * counts/values are final.
  */
 function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | null {
   const tools = state.blocks.filter((b): b is Extract<Block, { kind: 'tool' }> => b.kind === 'tool');
@@ -91,15 +91,17 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
   const bodyParts: string[] = [];
   if (hasError) bodyParts.push(`⚠️ ${state.errorMsg}`);
   if (hasReasoning) {
-    // aiduPOP: no "思考过程" caption — just the raw thinking text, capped.
-    bodyParts.push(truncate(state.reasoning.content, REASONING_MAX));
+    // aiduCAT: 🌊 marks a thinking burst — same emoji as the collapsed header.
+    bodyParts.push(`🌊 ${truncate(state.reasoning.content, REASONING_MAX)}`);
   }
   if (tools.length > 0) {
     // Latest tool on top so the freshest activity is what you see on expand.
+    // 🫧 marks each tool call — same emoji as the collapsed header; the bold
+    // name carries which tool it was.
     const lines = tools
       .slice()
       .reverse()
-      .map((b) => `- ${toolHeaderText(b.tool)}`);
+      .map((b) => `- 🫧 ${toolHeaderPlain(b.tool)}`);
     bodyParts.push(lines.join('\n'));
   }
 
@@ -112,7 +114,7 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
 }
 
 /**
- * aiduPOP header fragment: `🤖 model · 💭 n · 🧰 n · ⏱ elapsed`. Each piece
+ * aiduPOP header fragment: `☤ model · 🌊 n · 🫧 n · ✨ elapsed`. Each piece
  * only appears when it has a value; separators are the aiduPOP `·`.
  * Elapsed keeps ticking across card updates because renderCard is re-run on
  * every streaming update with the fixed `options.startedAt`.

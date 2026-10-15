@@ -12,6 +12,13 @@ const OUTPUT_MAX = 1200;
  */
 const BODY_TOTAL_MAX = 2500;
 
+/** aiduCAT: header without any category emoji (used inside the aiduPOP panel body). */
+export function toolHeaderPlain(tool: ToolEntry): string {
+  const summary = summarizeInput(tool.name, tool.input);
+  const base = summary ? `**${tool.name}** — ${summary}` : `**${tool.name}**`;
+  return tool.status === 'error' ? `${base} ❌` : base;
+}
+
 export function toolHeaderText(tool: ToolEntry): string {
   // aiduCAT: per-tool emoji aligned with Hangzhou aiduPOP layout.
   const emoji = toolEmoji(tool.name);

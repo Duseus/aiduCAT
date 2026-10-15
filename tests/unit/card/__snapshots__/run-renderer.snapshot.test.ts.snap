@@ -11,9 +11,9 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         },
         "elements": [
           {
-            "content": "- ✏️ **Edit** — /repo/a.ts
-- 📖 **Read** — /repo/a.ts
-- 💻 **Bash** — pwd",
+            "content": "- 🫧 **Edit** — /repo/a.ts
+- 🫧 **Read** — /repo/a.ts
+- 🫧 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -81,9 +81,9 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         },
         "elements": [
           {
-            "content": "- ✏️ **Edit** — /repo/a.ts
-- 📖 **Read** — /repo/a.ts
-- 💻 **Bash** — pwd",
+            "content": "- 🫧 **Edit** — /repo/a.ts
+- 🫧 **Read** — /repo/a.ts
+- 🫧 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -130,7 +130,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
         },
         "elements": [
           {
-            "content": "checking options",
+            "content": "🌊 checking options",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -202,7 +202,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
         },
         "elements": [
           {
-            "content": "checking options",
+            "content": "🌊 checking options",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -441,7 +441,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 💻 **Bash** — pwd",
+            "content": "- 🫧 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -509,7 +509,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 💻 **Bash** — pwd",
+            "content": "- 🫧 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -556,7 +556,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 📖 **Read** — /missing.ts ❌",
+            "content": "- 🫧 **Read** — /missing.ts ❌",
             "tag": "markdown",
             "text_size": "notation",
           },
