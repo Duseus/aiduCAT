@@ -71,7 +71,7 @@ describe('COT event mapping', () => {
         { kind: 'tool', tool: { id: 'tool', name: 'command_execution', input: {}, status: 'done' } },
         { kind: 'text', content: 'final', streaming: false },
       ],
-      reasoning: { content: 'hidden', active: true },
+      reasoning: { content: 'hidden', active: true, segments: 1 },
       footer: 'streaming',
       terminal: 'done',
     };
@@ -85,7 +85,7 @@ describe('COT event mapping', () => {
 
   it('uses the legacy tool header format for brief COT titles', () => {
     expect(cotBriefToolTitle('command_execution', { command: 'echo hello' }, 'done'))
-      .toContain('✅ command_execution');
+      .toContain('💻 command_execution');
     expect(cotBriefToolTitle('command_execution', { command: 'echo hello' }, 'done'))
       .toContain('echo hello');
   });

@@ -12,10 +12,49 @@ const OUTPUT_MAX = 1200;
  */
 const BODY_TOTAL_MAX = 2500;
 
-export function toolHeaderText(tool: ToolEntry): string {
-  const icon = tool.status === 'done' ? '✅' : tool.status === 'error' ? '❌' : '⏳';
+/** aiduCAT: header without any category emoji (used inside the aiduPOP panel body). */
+export function toolHeaderPlain(tool: ToolEntry): string {
   const summary = summarizeInput(tool.name, tool.input);
-  return summary ? `${icon} **${tool.name}** — ${summary}` : `${icon} **${tool.name}**`;
+  const base = summary ? `**${tool.name}** — ${summary}` : `**${tool.name}**`;
+  return tool.status === 'error' ? `${base} ❌` : base;
+}
+
+export function toolHeaderText(tool: ToolEntry): string {
+  // aiduCAT: per-tool emoji aligned with Hangzhou aiduPOP layout.
+  const emoji = toolEmoji(tool.name);
+  const stateIcon = tool.status === 'error' ? '❌' : '';
+  const summary = summarizeInput(tool.name, tool.input);
+  const base = summary ? `${emoji} **${tool.name}** — ${summary}` : `${emoji} **${tool.name}**`;
+  return stateIcon ? `${base} ${stateIcon}` : base;
+}
+
+/** aiduCAT: stable emoji per tool family (猴哥钦定 2026-10-15 点菜单). */
+function toolEmoji(name: string): string {
+  switch (name) {
+    case 'Bash':
+      return '👩🏻‍💻';
+    case 'Read':
+      return '👩🏻‍🏫';
+    case 'Edit':
+      return '👩🏻‍🔧';
+    case 'Write':
+    case 'NotebookEdit':
+      return '👩🏻‍🎨';
+    case 'Grep':
+      return '🕵🏻';
+    case 'Glob':
+      return '🥷🏻';
+    case 'WebFetch':
+    case 'WebSearch':
+      return '👩🏻‍🚀';
+    case 'Agent':
+    case 'Task':
+      return '👯🏻';
+    case 'command_execution':
+      return '👩🏻‍💻';
+    default:
+      return '🤵🏻';
+  }
 }
 
 export function toolBodyMd(tool: ToolEntry): string {
@@ -33,7 +72,7 @@ export function toolBodyMd(tool: ToolEntry): string {
       parts.push(`**Output**\n\`\`\`\n${truncated}\n\`\`\``);
     }
   } else if (tool.status === 'running') {
-    parts.push('_运行中…_');
+    parts.push('_☤aiduCATing…_');
   }
 
   const body = parts.join('\n\n');

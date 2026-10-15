@@ -4,7 +4,7 @@ import { homedir } from 'node:os';
 import { dirname, isAbsolute } from 'node:path';
 import type { LarkChannel, NormalizedMessage } from '@larksuite/channel';
 import { claudeCapability, codexCapability } from '../agent/capability';
-import { DEFAULT_MODEL, normalizeModelSelection, supportedModels } from '../agent/models';
+import { DEFAULT_MODEL, isDefaultModel, normalizeModelSelection, supportedModels } from '../agent/models';
 import type { AgentAdapter } from '../agent/types';
 import type { ActiveRuns } from '../bot/active-runs';
 import {
@@ -178,6 +178,7 @@ const handlers: Record<string, Handler> = {
   '/config': handleConfig,
   '/stop': handleStop,
   '/timeout': handleTimeout,
+  '/model': handleModel,
   '/ps': handlePs,
   '/exit': handleExit,
   '/doctor': handleDoctor,
@@ -1334,6 +1335,65 @@ function formatDoctorEchoStatus(echoText: string, state: RunState): string {
 async function handleHelp(_args: string, ctx: CommandContext): Promise<void> {
   const card = helpCard(ctx.agent.displayName);
   await ctx.channel.send(ctx.msg.chatId, { card }, commandReplyOptions(ctx));
+}
+
+// ─── /model (aiduCAT) ─────────────────────────────────────────────────────
+
+/**
+ * aiduCAT: `/model` — show or switch the agent model by chat command.
+ *
+ * Upstream only offers model switching through the `/config` form picker,
+ * which is pinned to a hardcoded Claude model catalog. Behind 10router the
+ * useful ids are gateway combos (`Gemini-3.8-Flash`, `claude-opus-4-6-thinking`,
+ * …) that upstream's `normalizeModelSelection` would coerce back to
+ * `default`, so this handler stores the raw string and bypasses the
+ * whitelist on purpose. `/model` with no args shows the current selection.
+ */
+async function handleModel(args: string, ctx: CommandContext): Promise<void> {
+  const value = args.trim();
+  const current = ctx.controls.cfg.preferences?.model;
+
+  if (!value) {
+    const label = isDefaultModel(current)
+      ? '跟随默认（不传 --model）'
+      : `\`${current}\``;
+    await reply(
+      ctx,
+      `🤖 当前模型:${label}\n\n用法:\n- \`/model <模型名>\` 切换(如 \`/model Gemini-3.8-Flash\`)\n- \`/model default\` 恢复默认(不指定模型)`,
+    );
+    return;
+  }
+
+  if (!/^[\w.:-]{1,120}$/.test(value)) {
+    await reply(ctx, '❌ 模型名只能包含字母/数字/`.:-_`,长度 ≤ 120。');
+    return;
+  }
+
+  const next = value.toLowerCase() === 'default' ? undefined : value;
+  const preferences: AppPreferences = {
+    ...(ctx.controls.cfg.preferences ?? {}),
+    model: next,
+  };
+  try {
+    await configOps.savePreferencesConfig(
+      ctx.controls,
+      preferences,
+      getRequireMentionInGroup(ctx.controls.cfg),
+      ctx.controls.profileConfig.larkCli.identityPreset,
+      ctx.controls.profileConfig.mode,
+    );
+  } catch (err) {
+    log.fail('command', err, { cmd: '/model' });
+    await reply(ctx, '❌ 模型保存失败,详情见日志。');
+    return;
+  }
+  log.info('command', 'model-set', { model: next ?? 'default' });
+  await reply(
+    ctx,
+    next === undefined
+      ? '✅ 已恢复默认模型(下次会话不传 --model)。'
+      : `✅ 模型已切换为 \`${next}\`(下次会话生效)。`,
+  );
 }
 
 // ─── /account ─────────────────────────────────────────────────────────────

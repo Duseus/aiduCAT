@@ -783,6 +783,23 @@ async function intakeMessage(deps: IntakeDeps): Promise<void> {
     return;
   }
 
+  // aiduCAT: ignore pure-emoji / sticker-style messages — never trigger a run.
+  // (Spec: the bot must not respond to reactions.) Empty or emoji-only text
+  // with no attachments and no explicit command falls through silently.
+  const rawText = emsg.content.trim();
+  const isEmojiOnly =
+    rawText.length > 0 &&
+    !/\p{L}|\p{N}/u.test(rawText.slice(0, 64)) && // no letters/digits at all
+    emsg.resources.length === 0;
+  if (isEmojiOnly) {
+    log.info('intake', 'emoji-only-ignored', { scope, len: rawText.length });
+    return;
+  }
+  if (rawText.length === 0 && emsg.resources.length === 0) {
+    log.info('intake', 'empty-ignored', { scope });
+    return;
+  }
+
   const size = pending.push(scope, emsg);
   log.info('intake', 'queued', { scope, queueSize: size, debounceMs: DEBOUNCE_MS });
 }
@@ -932,10 +949,12 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
   // For topic groups: thread the reply so it lands in the same topic as the
   // user's message. Otherwise the SDK posts at top level and the user's
   // topic discussion breaks visually.
-  const sendOpts = {
-    replyTo: lastMsg.messageId,
-    ...(mode === 'topic' && threadId ? { replyInThread: true } : {}),
-  };
+  // aiduCAT: drop the quote ("回复 xxx") decoration in p2p chats — cards
+  // should stand alone. Topic groups keep threading so replies land in-topic.
+  const sendOpts: { replyTo?: string; replyInThread?: boolean } =
+    mode === 'topic' && threadId
+      ? { replyTo: lastMsg.messageId, replyInThread: true }
+      : {};
   log.info('flush', 'reply-target', {
     scope,
     mode,
@@ -1051,27 +1070,42 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
     if (getShowToolCalls(controls.cfg)) return state;
     return { ...state, blocks: state.blocks.filter((b) => b.kind !== 'tool') };
   };
-  const cardRenderOptions = callbackAuth
-    ? {
-        signCallback: (action: string) =>
-          callbackAuth.sign({
-            runId: execution.runId,
-            scope,
-            chatId,
-            operatorOpenId: firstMsg.senderId,
-            action,
-            policyFingerprint: flow.policy.policyFingerprint,
-            ttlMs: 24 * 60 * 60 * 1000,
-          }),
-      }
-    : {};
+  const cardRenderOptions: import('../card/run-renderer').RunCardRenderOptions = {
+    // aiduCAT: surface model + start time in the meta panel.
+    model: modelSelection,
+    startedAt: Date.now(),
+    ...(callbackAuth
+      ? {
+          signCallback: (action: string) =>
+            callbackAuth.sign({
+              runId: execution.runId,
+              scope,
+              chatId,
+              operatorOpenId: firstMsg.senderId,
+              action,
+              policyFingerprint: flow.policy.policyFingerprint,
+              ttlMs: 24 * 60 * 60 * 1000,
+            }),
+        }
+      : {}),
+  };
 
-  // For non-card modes Claude's output doesn't surface visually until either
-  // a first streamed token (markdown mode) or the whole run ends (text mode).
-  // Add a "Typing" reaction to the triggering message as an instant ack, but
-  // never let that outbound API call block agent event draining.
-  const reactionPromise =
-    cotEnabled || replyMode === 'card' ? undefined : addWorkingReaction(channel, lastMsg.messageId);
+  // aiduCAT: no plain-text ack. (An earlier "aiduCATing…" cue was dropped —
+  // the streaming card's own status footer already signals liveness, and the
+  // extra bubble carried a replyTo which rendered as "回复 xxx" quotes.)
+
+  // aiduCAT: always add the "Typing" (敲键盘) reaction as the instant liveness
+  // cue — including card mode, since the streaming card can take a beat to
+  // post and 猴哥 wants the emoji on his message as the "已启动" signal.
+  // Removed after the reply via the `finally` cleanup below; never let this
+  // outbound call block agent event draining.
+  // aiduCAT: add the "Typing" (敲键盘) reaction as the instant liveness cue the
+  // moment the command lands. Once actual run output starts arriving (card
+  // mode: first state update in the stream loop below), it's removed early —
+  // 猴哥: "一旦开始了下面的工作，我的消息下的这个飞书表情就可以消失了".
+  // Fallback removal still happens in the `finally` cleanup below; never let
+  // this outbound call block agent event draining.
+  let reactionPromise = addWorkingReaction(channel, lastMsg.messageId);
 
   try {
     if (cotEnabled) {
@@ -1156,6 +1190,18 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
         recordSession,
         async (state) => {
           latestState = state;
+          // aiduCAT: the Typing reaction is only the "已启动" cue. The moment
+          // real work shows up on the card (first thinking/tool/text update),
+          // drop it — the streaming card itself carries liveness from here.
+          if (
+            reactionPromise &&
+            (state.reasoning.content.trim() ||
+              state.blocks.length > 0 ||
+              state.finalText)
+          ) {
+            scheduleWorkingReactionCleanup(channel, lastMsg.messageId, reactionPromise);
+            reactionPromise = Promise.resolve(undefined);
+          }
           if (shouldOpenProgressStream(filterForPrefs(state))) progress.ensureOpen();
           if (cardCtrl) {
             await cardCtrl.update(renderCard(filterForPrefs(state), cardRenderOptions));
@@ -1385,7 +1431,7 @@ function finalReplyState(progress: LazyProgressStream, state: RunState): RunStat
   return {
     ...state,
     blocks: state.finalText ? [{ kind: 'text', content: state.finalText, streaming: false }] : [],
-    reasoning: { content: '', active: false },
+    reasoning: { content: '', active: false, segments: 0 },
     footer: null,
     terminal: 'done',
     errorMsg: undefined,
@@ -1447,7 +1493,7 @@ async function sendFinalReply(input: {
   scope: string;
   state: RunState;
   replyMode: ReturnType<typeof getMessageReplyMode>;
-  sendOpts: { replyTo: string; replyInThread?: boolean };
+  sendOpts: { replyTo?: string; replyInThread?: boolean };
   cardRenderOptions: { signCallback?: (action: string) => string };
 }): Promise<void> {
   const body = renderText(input.state);
@@ -1499,7 +1545,7 @@ async function sendCotDegradedNotice(input: {
   channel: LarkChannel;
   chatId: string;
   scope: string;
-  sendOpts: { replyTo: string; replyInThread?: boolean };
+  sendOpts: { replyTo?: string; replyInThread?: boolean };
   reason: string;
 }): Promise<void> {
   log.warn('cot', 'degraded', {
