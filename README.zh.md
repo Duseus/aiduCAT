@@ -1,10 +1,12 @@
-# aiduCAT☤爱嘟猫 — 飞书 × Claude Code 流式泡波卡
+# aiduCAT☤爱嘟可爱糖 — Claude-code Agent Texting · 飞书泡波流式卡
 
 <p align="center">
-  <img src="docs/images/aiducat-banner-wide.jpg" alt="aiduCAT 爱嘟猫 · 飞书 Claude Code 流式卡横幅" width="100%">
+  <img src="docs/images/aiducat-banner-wide.jpg" alt="aiduCAT 爱嘟可爱糖 · Claude-code Agent Texting 品牌横幅" width="100%">
 </p>
 
-> **泡波样式（Bubble Wave）——一只住在飞书里的猫，随时替你敲代码**
+> **aiduCAT = Claude-code Agent Texting ——一只住在飞书里的猫，随时替你敲代码**
+>
+> 配色遵循 aidu VI：深蓝 `#1F4E79` · 暮灰 `#525252` · 墨黑 `#000000` · 宣白 `#FFFFFF`。
 >
 > **答案在上，过程收进一只小面板，结果看边框颜色。**
 
@@ -12,7 +14,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20.12%2B-brightgreen.svg)](https://nodejs.org/)
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
-[![aiduCAT](https://img.shields.io/badge/aiduCAT-☤爱嘟猫-ff69b4.svg)](https://github.com/monkey2jack/aiduCAT)
+[![aiduCAT](https://img.shields.io/badge/aiduCAT-Claude--code_Agent_Texting-1f4e79.svg)](https://github.com/monkey2jack/aiduCAT)
 
 **中文** | **[📖 English](./README.md)**
 
@@ -23,7 +25,7 @@
 
 ## aiduCAT 是什么？
 
-**aiduCAT☤爱嘟猫** 是给 **Claude Code / Codex CLI** 装上的一只飞书猫 —— 把本地编程 agent 的思考、工具调用和最终答案，实时装进一张仿 [aiduPOP](https://github.com/monkey2jack/aiduPOP) 泡波样式的飞书流式卡片。
+**aiduCAT☤爱嘟可爱糖**，全称 **Claude-code Agent Texting**（Claude 代码代理短信/消息化），是给 **Claude Code / Codex CLI** 装上的一只飞书猫 —— 把本地编程 agent 的思考、工具调用和最终答案，实时装进一张仿 [aiduPOP](https://github.com/monkey2jack/aiduPOP) 泡波样式的飞书流式卡片。
 
 aiduCAT 起源并致敬上游 [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)（npm 包 `lark-channel-bridge`），在MIT 协议的代码基础之上，做了一套完整的**泡波化改造**：
 

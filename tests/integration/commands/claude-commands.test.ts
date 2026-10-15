@@ -44,12 +44,12 @@ describe('Claude slash command visible behavior', () => {
     h.sessions.set('chat-1', 'old-session', h.tmp.workspace);
 
     await expect(h.run('/new')).resolves.toBe(true);
-    expect(lastMarkdown(h.channel)).toBe('已开始新会话。');
+    expect(lastMarkdown(h.channel)).toMatch(/^已开始新会话（沿用：模型 .+ · effort .+）。$/);
     expect(h.sessions.getRaw('chat-1')).toBeUndefined();
 
     h.sessions.set('chat-1', 'old-session-2', h.tmp.workspace);
     await expect(h.run('/reset')).resolves.toBe(true);
-    expect(lastMarkdown(h.channel)).toBe('已开始新会话。');
+    expect(lastMarkdown(h.channel)).toMatch(/^已开始新会话（沿用：模型 .+ · effort .+）。$/);
     expect(h.sessions.getRaw('chat-1')).toBeUndefined();
   });
 

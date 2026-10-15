@@ -82,6 +82,7 @@ export class ClaudeAdapter implements AgentAdapter {
     ];
     if (opts.sessionId) args.push('--resume', opts.sessionId);
     if (opts.model) args.push('--model', opts.model);
+    if (opts.effort) args.push('--effort', opts.effort);
 
     const child = spawnProcess(this.binary, args, {
       cwd: opts.cwd,

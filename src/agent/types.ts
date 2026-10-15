@@ -35,6 +35,8 @@ export interface AgentRunOptions {
   sessionId?: string;
   threadId?: string;
   model?: string;
+  /** Claude Code reasoning effort forwarded as `--effort` (low..max). */
+  effort?: string;
   images?: readonly string[];
   sandbox?: CodexSandboxMode;
   permissionMode?: ClaudePermissionMode;
