@@ -1,7 +1,6 @@
 import { deepMaskEmails } from './mask-email';
 import type { Block, FooterStatus, RunState, ToolEntry } from './run-state';
 import { toolBodyMd, toolHeaderPlain, toolHeaderText } from './tool-render';
-
 const REASONING_MAX = 1500;
 const COLLAPSE_TOOL_THRESHOLD = 3;
 
@@ -30,7 +29,11 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   for (const group of groupBlocks(state.blocks)) {
     if (group.kind === 'text') {
       if (group.content.trim()) {
-        elements.push(markdown(group.content));
+        // aiduCAT clarify: strip anything from a [CLARIFY] sentinel on — the
+        // marker line (complete or half-streamed) never reaches the card.
+        elements.push(
+          markdown((group.content.split('[CLARIFY]')[0] ?? '').replace(/\n+$/, '')),
+        );
       }
     }
   }
@@ -53,6 +56,31 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   // run meta header (aiduPOP layout). Hidden when there is nothing to show.
   const popPanel = aiduPopPanel(state, options);
   if (popPanel) elements.push(popPanel);
+
+  // aiduCAT clarify: when the run ended while waiting on a parsed
+  // [CLARIFY] marker, render the question + one button per option right
+  // below the answer. A click forwards the choice back into the scope's
+  // pending queue so the agent's session resumes with the answer.
+  if (state.clarify && state.terminal !== 'running') {
+    elements.push(markdown(`❓ **需要你确认**：${state.clarify.question}\n_点选下面按钮回复_`));
+    elements.push(
+      state.clarify.options.map((option) => ({
+        tag: 'button',
+        text: { tag: 'plain_text', content: option },
+        type: 'default',
+        size: 'medium',
+        behaviors: [
+          {
+            type: 'callback',
+            value: {
+              cmd: 'clarify.answer',
+              arg: JSON.stringify({ q: state.clarify!.question, a: option }),
+            },
+          },
+        ],
+      })),
+    );
+  }
 
   // aiduCAT: terminal state is expressed by the panel border color (aiduPOP
   // style) — 完成绿 / 停止黄 / 出错红 — not by a trailing text note. Keep an
