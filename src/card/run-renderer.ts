@@ -41,14 +41,14 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   if (popPanel) elements.push(popPanel);
 
   if (state.terminal === 'interrupted') {
-    elements.push(noteMd('_⏹ 已被中断_'));
+    elements.push(noteMd('⭕️Stop'));
   } else if (state.terminal === 'idle_timeout') {
     const mins = state.idleTimeoutMinutes ?? 0;
-    elements.push(noteMd(`_⏱ ${mins} 分钟无响应,已自动终止_`));
+    elements.push(noteMd(`⚠️${mins} min no response`));
   } else if (state.terminal === 'error' && state.errorMsg) {
-    elements.push(noteMd(`⚠️ agent 失败：${state.errorMsg}`));
+    elements.push(noteMd(`❌Error: ${state.errorMsg}`));
   } else if (state.terminal === 'done' && elements.length === 0) {
-    elements.push(noteMd('_（未返回内容）_'));
+    elements.push(noteMd('🚫Nothing'));
   }
 
   if (state.terminal === 'running') {
@@ -96,12 +96,11 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
   }
   if (tools.length > 0) {
     // Latest tool on top so the freshest activity is what you see on expand.
-    // 🫧 marks each tool call — same emoji as the collapsed header; the bold
-    // name carries which tool it was.
+    // 猴哥点菜单：每个工具用自己的专属 emoji（👩🏻‍💻Bash 等），不再加统一的 🫧。
     const lines = tools
       .slice()
       .reverse()
-      .map((b) => `- 🫧 ${toolHeaderPlain(b.tool)}`);
+      .map((b) => `- ${toolHeaderText(b.tool)}`);
     bodyParts.push(lines.join('\n'));
   }
 
@@ -204,7 +203,7 @@ function stopButton(options: RunCardRenderOptions): object {
   }
   return {
     tag: 'button',
-    text: { tag: 'plain_text', content: '⏹ 终止' },
+    text: { tag: 'plain_text', content: '⭕️Stop' },
     type: 'danger',
     behaviors: [{ type: 'callback', value }],
   };
@@ -213,21 +212,21 @@ function stopButton(options: RunCardRenderOptions): object {
 function footerStatus(status: Exclude<FooterStatus, null>): object {
   const text =
     status === 'thinking'
-      ? '🧠 正在思考'
+      ? '🌊Waving…'
       : status === 'tool_running'
-        ? '🧰 正在调用工具'
-        : '✍️ 正在输出';
+        ? '🫧Poping…'
+        : '☤aiduCATing…';
   return noteMd(text);
 }
 
 function summaryText(state: RunState): string {
-  if (state.terminal === 'interrupted') return '已中断';
-  if (state.terminal === 'idle_timeout') return '已超时';
-  if (state.terminal === 'error') return '出错';
-  if (state.terminal === 'done') return '已完成';
-  if (state.footer === 'tool_running') return '正在调用工具';
-  if (state.footer === 'streaming') return '正在输出';
-  return '思考中';
+  if (state.terminal === 'interrupted') return '⭕️';
+  if (state.terminal === 'idle_timeout') return '⚠️';
+  if (state.terminal === 'error') return '❌';
+  if (state.terminal === 'done') return '✅';
+  if (state.footer === 'tool_running') return '🫧Poping…';
+  if (state.footer === 'streaming') return '☤aiduCATing…';
+  return '🌊Waving…';
 }
 
 function truncate(s: string, max: number): string {

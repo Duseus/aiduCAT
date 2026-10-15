@@ -28,32 +28,32 @@ export function toolHeaderText(tool: ToolEntry): string {
   return stateIcon ? `${base} ${stateIcon}` : base;
 }
 
-/** aiduCAT: stable emoji per tool family (aiduPOP convention). */
+/** aiduCAT: stable emoji per tool family (猴哥钦定 2026-10-15 点菜单). */
 function toolEmoji(name: string): string {
   switch (name) {
     case 'Bash':
-      return '💻';
+      return '👩🏻‍💻';
     case 'Read':
-      return '📖';
+      return '👩🏻‍🏫';
     case 'Edit':
-      return '✏️';
+      return '👩🏻‍🔧';
     case 'Write':
     case 'NotebookEdit':
-      return '📝';
+      return '👩🏻‍🎨';
     case 'Grep':
-      return '🔍';
+      return '🕵🏻';
     case 'Glob':
-      return '📂';
+      return '🥷🏻';
     case 'WebFetch':
     case 'WebSearch':
-      return '🌐';
+      return '👩🏻‍🚀';
     case 'Agent':
     case 'Task':
-      return '🤖';
+      return '👯🏻';
     case 'command_execution':
-      return '💻';
+      return '👩🏻‍💻';
     default:
-      return '🧰';
+      return '🤵🏻';
   }
 }
 
@@ -72,7 +72,7 @@ export function toolBodyMd(tool: ToolEntry): string {
       parts.push(`**Output**\n\`\`\`\n${truncated}\n\`\`\``);
     }
   } else if (tool.status === 'running') {
-    parts.push('_运行中…_');
+    parts.push('_☤aiduCATing…_');
   }
 
   const body = parts.join('\n\n');

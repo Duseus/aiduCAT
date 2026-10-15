@@ -11,9 +11,9 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         },
         "elements": [
           {
-            "content": "- 🫧 **Edit** — /repo/a.ts
-- 🫧 **Read** — /repo/a.ts
-- 🫧 **Bash** — pwd",
+            "content": "- 👩🏻‍🔧 **Edit** — /repo/a.ts
+- 👩🏻‍🏫 **Read** — /repo/a.ts
+- 👩🏻‍💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -38,7 +38,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         "vertical_spacing": "8px",
       },
       {
-        "content": "🧰 正在调用工具",
+        "content": "🫧Poping…",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -53,7 +53,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         ],
         "tag": "button",
         "text": {
-          "content": "⏹ 终止",
+          "content": "⭕️Stop",
           "tag": "plain_text",
         },
         "type": "danger",
@@ -63,7 +63,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
   "config": {
     "streaming_mode": true,
     "summary": {
-      "content": "正在调用工具",
+      "content": "🫧Poping…",
     },
   },
   "schema": "2.0",
@@ -81,9 +81,9 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         },
         "elements": [
           {
-            "content": "- 🫧 **Edit** — /repo/a.ts
-- 🫧 **Read** — /repo/a.ts
-- 🫧 **Bash** — pwd",
+            "content": "- 👩🏻‍🔧 **Edit** — /repo/a.ts
+- 👩🏻‍🏫 **Read** — /repo/a.ts
+- 👩🏻‍💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -112,7 +112,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已完成",
+      "content": "✅",
     },
   },
   "schema": "2.0",
@@ -155,7 +155,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
         "vertical_spacing": "8px",
       },
       {
-        "content": "🧠 正在思考",
+        "content": "🌊Waving…",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -170,7 +170,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
         ],
         "tag": "button",
         "text": {
-          "content": "⏹ 终止",
+          "content": "⭕️Stop",
           "tag": "plain_text",
         },
         "type": "danger",
@@ -180,7 +180,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
   "config": {
     "streaming_mode": true,
     "summary": {
-      "content": "思考中",
+      "content": "🌊Waving…",
     },
   },
   "schema": "2.0",
@@ -231,7 +231,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已完成",
+      "content": "✅",
     },
   },
   "schema": "2.0",
@@ -243,7 +243,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "body": {
     "elements": [
       {
-        "content": "_（未返回内容）_",
+        "content": "🚫Nothing",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -252,7 +252,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已完成",
+      "content": "✅",
     },
   },
   "schema": "2.0",
@@ -295,7 +295,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "vertical_spacing": "8px",
       },
       {
-        "content": "⚠️ agent 失败：process failed",
+        "content": "❌Error: process failed",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -304,7 +304,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "出错",
+      "content": "❌",
     },
   },
   "schema": "2.0",
@@ -320,7 +320,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "markdown",
       },
       {
-        "content": "_⏹ 已被中断_",
+        "content": "⭕️Stop",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -329,7 +329,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已中断",
+      "content": "⭕️",
     },
   },
   "schema": "2.0",
@@ -345,7 +345,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "markdown",
       },
       {
-        "content": "_⏱ 15 分钟无响应,已自动终止_",
+        "content": "⚠️15 min no response",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -354,7 +354,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已超时",
+      "content": "⚠️",
     },
   },
   "schema": "2.0",
@@ -366,7 +366,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
   "body": {
     "elements": [
       {
-        "content": "🧠 正在思考",
+        "content": "🌊Waving…",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -381,7 +381,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
         ],
         "tag": "button",
         "text": {
-          "content": "⏹ 终止",
+          "content": "⭕️Stop",
           "tag": "plain_text",
         },
         "type": "danger",
@@ -391,7 +391,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
   "config": {
     "streaming_mode": true,
     "summary": {
-      "content": "思考中",
+      "content": "🌊Waving…",
     },
   },
   "schema": "2.0",
@@ -401,7 +401,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
 exports[`run card renderer snapshots > renders markdown text mode without card-only controls 1`] = `
 "Answer
 
-> 💻 **Bash** — pwd
+> 👩🏻‍💻 **Bash** — pwd
 
 Done
 
@@ -411,7 +411,7 @@ _✍️ 正在输出…_"
 exports[`run card renderer snapshots > renders markdown text mode without card-only controls 2`] = `
 "Answer
 
-> 💻 **Bash** — pwd
+> 👩🏻‍💻 **Bash** — pwd
 
 Done
 
@@ -421,7 +421,7 @@ _⏹ 已被中断_"
 exports[`run card renderer snapshots > renders markdown text mode without card-only controls 3`] = `
 "Answer
 
-> 💻 **Bash** — pwd
+> 👩🏻‍💻 **Bash** — pwd
 
 Done
 
@@ -441,7 +441,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 🫧 **Bash** — pwd",
+            "content": "- 👩🏻‍💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -466,7 +466,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "vertical_spacing": "8px",
       },
       {
-        "content": "🧰 正在调用工具",
+        "content": "🫧Poping…",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -481,7 +481,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         ],
         "tag": "button",
         "text": {
-          "content": "⏹ 终止",
+          "content": "⭕️Stop",
           "tag": "plain_text",
         },
         "type": "danger",
@@ -491,7 +491,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
   "config": {
     "streaming_mode": true,
     "summary": {
-      "content": "正在调用工具",
+      "content": "🫧Poping…",
     },
   },
   "schema": "2.0",
@@ -509,7 +509,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 🫧 **Bash** — pwd",
+            "content": "- 👩🏻‍💻 **Bash** — pwd",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -538,7 +538,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已完成",
+      "content": "✅",
     },
   },
   "schema": "2.0",
@@ -556,7 +556,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         },
         "elements": [
           {
-            "content": "- 🫧 **Read** — /missing.ts ❌",
+            "content": "- 👩🏻‍🏫 **Read** — /missing.ts ❌",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -585,7 +585,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
   "config": {
     "streaming_mode": false,
     "summary": {
-      "content": "已完成",
+      "content": "✅",
     },
   },
   "schema": "2.0",
