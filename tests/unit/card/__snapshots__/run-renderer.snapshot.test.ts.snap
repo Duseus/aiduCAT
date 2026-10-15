@@ -28,7 +28,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🫧 3",
+            "content": "🫧Poping… · 🫧 3",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -36,27 +36,6 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         "padding": "8px 8px 8px 8px",
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
-      },
-      {
-        "content": "🫧Poping…",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
-      {
-        "behaviors": [
-          {
-            "type": "callback",
-            "value": {
-              "cmd": "stop",
-            },
-          },
-        ],
-        "tag": "button",
-        "text": {
-          "content": "⭕️Stop",
-          "tag": "plain_text",
-        },
-        "type": "danger",
       },
     ],
   },
@@ -145,7 +124,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🌊 1",
+            "content": "🌊Waving… · 🌊 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -153,27 +132,6 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
         "padding": "8px 8px 8px 8px",
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
-      },
-      {
-        "content": "🌊Waving…",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
-      {
-        "behaviors": [
-          {
-            "type": "callback",
-            "value": {
-              "cmd": "stop",
-            },
-          },
-        ],
-        "tag": "button",
-        "text": {
-          "content": "⭕️Stop",
-          "tag": "plain_text",
-        },
-        "type": "danger",
       },
     ],
   },
@@ -351,25 +309,35 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
   "body": {
     "elements": [
       {
-        "content": "🌊Waving…",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
-      {
-        "behaviors": [
+        "border": {
+          "color": "grey",
+          "corner_radius": "5px",
+        },
+        "elements": [
           {
-            "type": "callback",
-            "value": {
-              "cmd": "stop",
-            },
+            "content": "_（无过程记录）_",
+            "tag": "markdown",
+            "text_size": "notation",
           },
         ],
-        "tag": "button",
-        "text": {
-          "content": "⭕️Stop",
-          "tag": "plain_text",
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "follow_text",
+          "title": {
+            "content": "🌊Waving…",
+            "tag": "markdown",
+          },
+          "vertical_align": "center",
         },
-        "type": "danger",
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
       },
     ],
   },
@@ -441,7 +409,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "follow_text",
           "title": {
-            "content": "🫧 1",
+            "content": "🫧Poping… · 🫧 1",
             "tag": "markdown",
           },
           "vertical_align": "center",
@@ -449,27 +417,6 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "padding": "8px 8px 8px 8px",
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
-      },
-      {
-        "content": "🫧Poping…",
-        "tag": "markdown",
-        "text_size": "notation",
-      },
-      {
-        "behaviors": [
-          {
-            "type": "callback",
-            "value": {
-              "cmd": "stop",
-            },
-          },
-        ],
-        "tag": "button",
-        "text": {
-          "content": "⭕️Stop",
-          "tag": "plain_text",
-        },
-        "type": "danger",
       },
     ],
   },

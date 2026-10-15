@@ -47,10 +47,9 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
     elements.push(noteMd('🚫Nothing'));
   }
 
-  if (state.terminal === 'running') {
-    if (state.footer) elements.push(footerStatus(state.footer));
-    elements.push(stopButton(options));
-  }
+  // aiduCAT: no footer status line and no stop button — the live status word
+  // lives at the far left of the panel header while running and vanishes on
+  // completion (border color takes over), and stopping goes through /stop.
 
   // Mask raw emails across every text field so the Feishu tenant audit doesn't
   // reject the (streamed) card with a 400 EMAIL_ADDRESS — see mask-email.ts.
@@ -126,6 +125,18 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
   const pieces: string[] = [];
+  // aiduCAT: while running, the live status word (🌊Waving… / 🫧Poping… /
+  // ☤aiduCATing…) leads the header at the far left; it disappears once the
+  // run ends — the panel border color carries the result from there.
+  if (state.terminal === 'running') {
+    const status =
+      state.footer === 'tool_running'
+        ? '🫧Poping…'
+        : state.footer === 'streaming'
+          ? '☤aiduCATing…'
+          : '🌊Waving…';
+    pieces.push(status);
+  }
   if (options.model) pieces.push(`☤ ${options.model}`);
   if (state.reasoning.segments > 0) pieces.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
@@ -199,30 +210,6 @@ function markdown(content: string): object {
 
 function noteMd(content: string): object {
   return { tag: 'markdown', content, text_size: 'notation' };
-}
-
-function stopButton(options: RunCardRenderOptions): object {
-  const value: Record<string, unknown> = { cmd: 'stop' };
-  if (options.signCallback) {
-    value.__bridge_cb = true;
-    value.bridge_token = options.signCallback('stop');
-  }
-  return {
-    tag: 'button',
-    text: { tag: 'plain_text', content: '⭕️Stop' },
-    type: 'danger',
-    behaviors: [{ type: 'callback', value }],
-  };
-}
-
-function footerStatus(status: Exclude<FooterStatus, null>): object {
-  const text =
-    status === 'thinking'
-      ? '🌊Waving…'
-      : status === 'tool_running'
-        ? '🫧Poping…'
-        : '☤aiduCATing…';
-  return noteMd(text);
 }
 
 function summaryText(state: RunState): string {

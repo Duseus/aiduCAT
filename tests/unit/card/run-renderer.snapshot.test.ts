@@ -85,19 +85,12 @@ describe('run card renderer snapshots', () => {
     expect(renderText(stateFrom([{ type: 'error', message: 'process failed', terminationReason: 'failed' }]))).toMatchSnapshot();
   });
 
-  it('injects signed bridge callback values for managed run controls', () => {
+  it('omits the stop button from card runs (stop goes through /stop commands)', () => {
     const card = renderCard(initialState, {
       signCallback: (action) => `token-for-${action}`,
-    }) as {
-      body?: { elements?: Array<{ tag?: string; behaviors?: Array<{ value?: Record<string, unknown> }> }> };
-    };
-    const button = card.body?.elements?.find((element) => element.tag === 'button');
+    }) as { body?: { elements?: Array<{ tag?: string }> } };
 
-    expect(button?.behaviors?.[0]?.value).toEqual({
-      cmd: 'stop',
-      __bridge_cb: true,
-      bridge_token: 'token-for-stop',
-    });
+    expect(card.body?.elements?.find((element) => element.tag === 'button')).toBeUndefined();
   });
 
   it('keeps local paths in user-visible cards and text fallbacks', () => {
