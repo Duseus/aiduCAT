@@ -113,6 +113,34 @@ describe('signed card callback dispatch', () => {
     expect(activeRun.stopped).toBe(false);
     expect(h.pending.cancel('oc_group')).toHaveLength(0);
   });
+
+  // 猴哥 bug: picking /model or /config from the /help dropdown showed only
+  // "嘟嘟撤回消息" and no card. Root cause — the help dropdown dispatched with
+  // fromCardAction:true, so those handlers recalled the carrier (the help
+  // card) before rendering, then tried to reply-to that now-deleted message
+  // and the send failed. Help picks must run as plain typed commands: no
+  // recall of the launcher, card replies normally. /status never recalled, so
+  // this asserts on /model — the command that actually reproduced the bug.
+  it('runs a help-dropdown pick without recalling the help card', async () => {
+    const h = await createHarness();
+
+    await h.dispatch({ cmd: 'help.run' }, undefined, 'model');
+
+    expect(h.channel.recalled).not.toContain('om_card');
+    const modelCard = h.channel.sent.find((m) =>
+      JSON.stringify(m.content).includes('模型切换'),
+    );
+    expect(modelCard).toBeDefined();
+  });
+
+  it('ignores a help.run callback that carries no selected option', async () => {
+    const h = await createHarness();
+
+    await h.dispatch({ cmd: 'help.run' });
+
+    expect(h.channel.recalled).toHaveLength(0);
+    expect(h.channel.sent).toHaveLength(0);
+  });
 });
 
 type Harness = {
@@ -125,7 +153,11 @@ type Harness = {
   controls: Controls;
   pending: PendingQueue;
   auth: CallbackAuth;
-  dispatch(value: Record<string, unknown>, formValue?: Record<string, unknown>): Promise<void>;
+  dispatch(
+    value: Record<string, unknown>,
+    formValue?: Record<string, unknown>,
+    option?: string,
+  ): Promise<void>;
   token(
     action: string,
     overrides?: { operatorOpenId?: string; nonce?: string; scope?: string },
@@ -201,10 +233,10 @@ async function createHarness(
         ttlMs: 60_000,
       });
     },
-    dispatch: (value, formValue) =>
+    dispatch: (value, formValue, option) =>
       handleCardAction({
         channel: channel as unknown as Parameters<typeof handleCardAction>[0]['channel'],
-        evt: cardEvent(value, formValue),
+        evt: cardEvent(value, formValue, option),
         sessions,
         workspaces,
         activeRuns,
@@ -221,9 +253,10 @@ async function createHarness(
 function cardEvent(
   value: Record<string, unknown>,
   formValue?: Record<string, unknown>,
+  option?: string,
 ): CardActionEvent {
   return {
-    action: { value },
+    action: { value, ...(option !== undefined ? { option } : {}) },
     chatId: 'oc_group',
     messageId: 'om_card',
     operator: {

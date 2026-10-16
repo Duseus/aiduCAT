@@ -122,13 +122,6 @@ export function statusCard(info: StatusInfo): object {
   ];
   return shell('📊 当前状态', [
     divMd(lines.join('\n')),
-    HR,
-    actions([
-      { text: '🆕 新会话', value: { cmd: 'new' }, style: 'primary' },
-      { text: '🔁 恢复会话', value: { cmd: 'resume' } },
-      { text: '📂 工作目录', value: { cmd: 'ws.list' } },
-      { text: '💡 帮助', value: { cmd: 'help' } },
-    ]),
   ]);
 }
 
@@ -177,42 +170,57 @@ export function resumeCard(cwd: string, entries: ResumeEntry[]): object {
   return shell('🔁 恢复历史会话', elements);
 }
 
+/**
+ * aiduCAT /help (猴哥点单): plain "command — 中文注解" lines (no bullet or
+ * backtick noise), no bottom buttons, plus a dropdown that executes the
+ * picked command immediately (select callback → dispatcher `help.run`).
+ */
+export const HELP_COMMANDS: Array<{ cmd: string; note: string }> = [
+  { cmd: 'new', note: '新建会话，重新开始' },
+  { cmd: 'resume', note: '列出并恢复历史会话' },
+  { cmd: 'cd', note: '切换工作目录' },
+  { cmd: 'ws', note: '工作目录管理' },
+  { cmd: 'account', note: '查看/更换飞书应用凭据' },
+  { cmd: 'config', note: '偏好、访问控制与身份策略' },
+  { cmd: 'model', note: '切换模型与推理强度' },
+  { cmd: 'status', note: '当前状态' },
+  { cmd: 'stop', note: '结束正在跑的任务' },
+  { cmd: 'timeout', note: '会话探活设置' },
+  { cmd: 'ps', note: '列出本机所有 bot' },
+  { cmd: 'exit', note: '关掉指定 bot' },
+  { cmd: 'reconnect', note: '强制重连 WebSocket' },
+  { cmd: 'doctor', note: '把日志交给 Agent 自助诊断' },
+  { cmd: 'help', note: '本帮助' },
+];
+
 export function helpCard(agentName = 'Agent'): object {
   const escapedAgentName = escapeMd(agentName);
-  return shell('💡 使用帮助', [
-    divMd(
-      [
-        '**命令列表**',
-        '',
-        '- `/new` `/reset` — 清空当前 chat 的会话',
-        '- `/new chat [name]` — 新建群+新会话，自动拉你进群',
-        '- `/resume [N]` — 列出并恢复历史会话（最多 N 条）',
-        '- `/cd <path>` — 切换工作目录（会重置 session）',
-        '- `/ws list|save <name>|use <name>|remove <name>` — 工作目录',
-        '- `/account` — 查看当前应用；`/account change` 换 appId/secret 并重连',
-        '- `/config` — 调整偏好、访问控制和 lark-cli 身份策略',
-        '- `/status` — 当前状态',
-        '- `/stop` — 结束当前正在跑的任务（也可点卡片底部 ⏹ 终止 按钮）',
-        '- `/stop comment:<scopeHash>` — 管理员停止云文档评论任务',
-        '- `/timeout [N|off|default]` — 当前 session 的探活分钟数,`/config` 改全局默认',
-        '- `/timeout comment:<scopeHash> N` — 管理员设置云文档评论任务探活',
-        '- `/ps` — 列出本机所有 bot,标识当前正在回复的那个',
-        '- `/exit <id|#>` — 关掉指定 bot(用 `/ps` 看 id/序号)',
-        '- `/reconnect` — 强制重连 WebSocket(网络抖动后 bot 没反应时用)',
-        `- \`/doctor [描述]\` — 把日志和描述交给 ${escapedAgentName} 自助诊断`,
-        '- `/help` — 本帮助',
-        '',
-        `其他内容直接交给 ${escapedAgentName}。`,
-      ].join('\n'),
-    ),
-    HR,
-    actions([
-      { text: '📊 状态', value: { cmd: 'status' }, style: 'primary' },
-      { text: '🔁 恢复会话', value: { cmd: 'resume' } },
-      { text: '📂 工作目录', value: { cmd: 'ws.list' } },
-      { text: '🆕 新会话', value: { cmd: 'new' } },
-    ]),
-  ]);
+  const listLines = HELP_COMMANDS.map((c) => `/${c.cmd} — ${c.note}`);
+  return {
+    schema: '2.0',
+    config: {},
+    body: {
+      elements: [
+        {
+          tag: 'markdown',
+          content: `💡 **使用帮助**\n\n${listLines.join('\n')}\n\n其他内容直接交给 ${escapedAgentName}。`,
+        },
+        { tag: 'hr' },
+        {
+          tag: 'select_static',
+          name: 'help_cmd',
+          placeholder: { tag: 'plain_text', content: '选择命令，直接执行' },
+          options: HELP_COMMANDS.map((c) => ({
+            text: { tag: 'plain_text', content: `/${c.cmd} · ${c.note}` },
+            value: c.cmd,
+          })),
+          // Selecting an option fires the callback right away — no submit
+          // button. The dispatcher turns action.option into a real command.
+          behaviors: [{ type: 'callback', value: { cmd: 'help.run' } }],
+        },
+      ],
+    },
+  };
 }
 
 function escapeMd(s: string): string {

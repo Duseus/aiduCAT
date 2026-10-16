@@ -52,6 +52,9 @@ export interface FakeChannel {
   updateCardById(cardId: string, cardJson: unknown, sequence: number): Promise<void>;
   send(chatId: string, content: unknown, options?: unknown): Promise<{ messageId: string }>;
   stream(chatId: string, input: unknown, options?: unknown): Promise<void>;
+  /** messageIds passed to recallMessage, in call order. */
+  readonly recalled: string[];
+  recallMessage(messageId: string): Promise<void>;
 }
 
 export function createFakeChannel(): FakeChannel {
@@ -60,6 +63,7 @@ export function createFakeChannel(): FakeChannel {
   const requests: FakeRawClientRequest[] = [];
   const rawThreadIds = new Map<string, string>();
   const cardById = new Map<string, unknown>();
+  const recalled: string[] = [];
   let nextCard = 1;
   let nextMessage = 1;
 
@@ -78,6 +82,11 @@ export function createFakeChannel(): FakeChannel {
     sent,
     streams,
     rawThreadIds,
+    recalled,
+    async recallMessage(messageId: string): Promise<void> {
+      requests.push({ method: 'im.v1.message.delete', params: { path: { message_id: messageId } } });
+      recalled.push(messageId);
+    },
     async fetchRawMessage(messageId: string): Promise<Array<{ thread_id?: string }>> {
       const threadId = rawThreadIds.get(messageId);
       return [threadId ? { thread_id: threadId } : {}];

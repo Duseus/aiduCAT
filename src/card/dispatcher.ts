@@ -109,6 +109,29 @@ export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
 
     const msg = makeFakeMsg(deps.evt, threadId);
 
+    // aiduCAT /help dropdown: picking an option fires a `help.run` callback
+    // with the command name on action.option (no submit button). Dispatch it
+    // as if the user typed the bare slash command — handlers with required
+    // args (cd/exit/timeout/…) reply their own usage text on empty args.
+    //
+    // Crucially this must NOT carry fromCardAction: that flag means "the
+    // carrier message is my own form card — recall it in place" (/model,
+    // /config, /account). Here the carrier is the help card, a launcher the
+    // user may pick from repeatedly; recalling it also breaks replyTo for
+    // the follow-up card. Help-picked commands run as plain typed commands.
+    let dispatchCmd = cmd;
+    let viaHelpCard = false;
+    if (cmd === 'help.run') {
+      const picked =
+        typeof deps.evt.action.option === 'string' ? deps.evt.action.option.trim() : '';
+      if (!picked) {
+        log.info('cardAction', 'help-run-no-option', { scope });
+        return;
+      }
+      dispatchCmd = picked;
+      viaHelpCard = true;
+    }
+
     const ctx: CommandContext = {
       channel: deps.channel,
       msg,
@@ -131,10 +154,12 @@ export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
       runExecutor: deps.runExecutor,
       controls: deps.controls,
       formValue,
-      fromCardAction: true,
+      // Help-dropdown picks are plain command invocations (see note above):
+      // no in-place recall of the carrier help card.
+      fromCardAction: !viaHelpCard,
     };
 
-    const [name, ...rest] = cmd.split('.');
+    const [name, ...rest] = dispatchCmd.split('.');
     const sub = rest.join(' ');
     const args = composeArgs(sub, payload);
 
