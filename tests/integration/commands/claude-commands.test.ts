@@ -148,7 +148,11 @@ describe('Claude slash command visible behavior', () => {
     expect(lastContent(h.channel)).toHaveProperty('card');
     const help = JSON.stringify(lastContent(h.channel));
     expect(help).toContain('Fake Agent');
-    expect(help).toContain('lark-cli 身份策略');
+    // 猴哥点单: help is a plain "/cmd — 注解" list + a run-on-select dropdown,
+    // not the old bullet/backtick wall with bottom buttons.
+    expect(help).toContain('/config — 偏好、访问控制与身份策略');
+    expect(help).toContain('help.run');
+    expect(help).not.toContain('lark-cli 身份策略');
     expect(help).not.toContain('/lark');
     expect(help).not.toContain('交给 Claude');
   });
