@@ -1406,6 +1406,7 @@ async function showModelCard(ctx: CommandContext): Promise<void> {
     currentModel,
     currentEffort,
     source,
+    agentKind: ctx.controls.profileConfig.agentKind,
   });
   if (ctx.fromCardAction) await recallMessage(ctx, ctx.msg.messageId);
   await sendManagedCard(ctx.channel, ctx.msg.chatId, card, commandReplyOptions(ctx));

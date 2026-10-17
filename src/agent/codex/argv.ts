@@ -9,6 +9,8 @@ export interface BuildCodexArgsInput {
   ignoreRules?: boolean;
   /** Forwarded to `codex exec --model`. Omitted uses the Codex default. */
   model?: string;
+  /** Forwarded to `codex exec -c model_reasoning_effort="..."`. */
+  effort?: string;
 }
 
 export function buildCodexArgs(input: BuildCodexArgsInput): string[] {
@@ -24,6 +26,7 @@ export function buildCodexArgs(input: BuildCodexArgsInput): string[] {
     '--sandbox',
     input.sandbox,
     ...(input.model ? ['--model', input.model] : []),
+    ...(input.effort ? ['-c', `model_reasoning_effort="${input.effort}"`] : []),
     '-c',
     'approval_policy="never"',
     '-c',

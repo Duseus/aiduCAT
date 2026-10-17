@@ -101,6 +101,7 @@ export class CodexAdapter implements AgentAdapter {
       ignoreUserConfig: this.ignoreUserConfig,
       ignoreRules: this.ignoreRules,
       model: opts.model,
+      effort: opts.effort,
     });
     const envOverrides: NodeJS.ProcessEnv = buildLarkChannelEnv(this.larkChannel);
     if (this.codexHome) {

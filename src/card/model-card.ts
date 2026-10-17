@@ -7,7 +7,9 @@
  * select blocks form submit with a native prompt), plus a client-side hint.
  */
 
-const EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+const CLAUDE_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+const CODEX_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'ultra'] as const;
+const ALL_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] as const;
 
 export interface ModelCardOpts {
   /** Combo names from 10router (live or cached). */
@@ -18,6 +20,8 @@ export interface ModelCardOpts {
   currentEffort?: string;
   /** Whether the 10router fetch succeeded — shapes the hint line. */
   source: 'live' | 'cached' | 'unavailable';
+  /** Agent runtime kind (claude or codex), used for dynamic effort hints and options. */
+  agentKind?: 'claude' | 'codex';
 }
 
 /** /model — the selection card. */
@@ -36,6 +40,15 @@ export function modelCard(opts: ModelCardOpts): object {
       // user something, and the unavailable hint above explains why.
       : [{ text: { tag: 'plain_text', content: '（取不到 combo 列表）' }, value: '__none__' }];
 
+  const isCodex = opts.agentKind === 'codex';
+  const isClaude = opts.agentKind === 'claude';
+  const effortLevels = isCodex ? CODEX_EFFORT_LEVELS : isClaude ? CLAUDE_EFFORT_LEVELS : ALL_EFFORT_LEVELS;
+  const effortHint = isCodex
+    ? '_low 最快最省, ultra 最深; 对应 Codex reasoning effort_'
+    : isClaude
+      ? '_low 最快最省, max 最深最慢; 对应 Claude Code `--effort`_'
+      : '_low 最快最省, max/ultra 最深; 对应 agent 推理强度_';
+
   const modelElements: object[] = [
     {
       tag: 'select_static',
@@ -49,18 +62,16 @@ export function modelCard(opts: ModelCardOpts): object {
     { tag: 'hr' },
     {
       tag: 'markdown',
-      content:
-        '**推理强度 (effort)**\n' +
-        '_low 最快最省, max 最深最慢; 对应 Claude Code `--effort`_',
+      content: `**推理强度 (effort)**\n${effortHint}`,
     },
     {
       tag: 'select_static',
       name: 'effort',
       placeholder: { tag: 'plain_text', content: '选择推理强度' },
-      ...(opts.currentEffort && (EFFORT_LEVELS as readonly string[]).includes(opts.currentEffort)
+      ...(opts.currentEffort && (effortLevels as readonly string[]).includes(opts.currentEffort)
         ? { initial_option: opts.currentEffort }
         : {}),
-      options: EFFORT_LEVELS.map((level) => ({
+      options: effortLevels.map((level) => ({
         text: { tag: 'plain_text', content: level },
         value: level,
       })),
@@ -90,7 +101,7 @@ export function modelCard(opts: ModelCardOpts): object {
         {
           tag: 'markdown',
           content:
-            `☤ **模型切换**\n\n${hint}\n\n` +
+            `**模型切换**\n\n${hint}\n\n` +
             `当前: ${opts.currentModel ? `\`${opts.currentModel}\`` : '跟随默认'}` +
             ` · effort: ${opts.currentEffort ?? '默认'}`,
         },
@@ -150,6 +161,6 @@ export function parseModelCardSubmit(
       ? rawModel
       : null;
   const rawEffort = String(formValue.effort ?? '').trim();
-  const validEffort = (EFFORT_LEVELS as readonly string[]).includes(rawEffort) ? rawEffort : null;
+  const validEffort = (ALL_EFFORT_LEVELS as readonly string[]).includes(rawEffort) ? rawEffort : null;
   return { model: validModel, effort: validEffort };
 }
