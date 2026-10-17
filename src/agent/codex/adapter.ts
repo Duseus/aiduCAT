@@ -248,6 +248,21 @@ async function* createEventStream(
         continue;
       }
       yield* translator.translate(parsed);
+
+      // aiduCAT: whenever a turn step or item completes, extract the live
+      // per-turn context fill (`last_token_usage`) from disk so the card header
+      // updates in real-time during long multi-step runs (not just at the very end).
+      if (codexHomeDir && typeof parsed === 'object' && parsed !== null && (parsed as { type?: string }).type === 'item.completed') {
+        const liveUsage = await extractCodexLastUsage(codexHomeDir);
+        if (liveUsage) {
+          yield {
+            type: 'usage',
+            inputTokens: liveUsage.inputTokens,
+            outputTokens: liveUsage.outputTokens,
+            cachedInputTokens: liveUsage.cachedInputTokens,
+          };
+        }
+      }
     }
   } finally {
     if (silentExitTimer) clearTimeout(silentExitTimer);
