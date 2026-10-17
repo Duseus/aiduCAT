@@ -32,7 +32,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🫧 3",
+            "content": "🌊 0 · 🫧 3",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -82,7 +82,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🫧 3",
+            "content": "🌊 0 · 🫧 3",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -134,7 +134,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 1",
+            "content": "🌊 1 · 🫧 0",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -186,7 +186,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 1",
+            "content": "🌊 1 · 🫧 0",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -213,9 +213,36 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
   "body": {
     "elements": [
       {
-        "content": "🚫Nothing",
-        "tag": "markdown",
-        "text_size": "notation",
+        "border": {
+          "color": "green",
+          "corner_radius": "5px",
+        },
+        "elements": [
+          {
+            "content": "_（无过程记录）_",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+        ],
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "right",
+          "title": {
+            "content": "🌊 0 · 🫧 0",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+          "vertical_align": "center",
+        },
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
       },
     ],
   },
@@ -255,7 +282,8 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "❌",
+            "content": "🌊 0 · 🫧 0
+❌",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -285,6 +313,38 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "content": "partial",
         "tag": "markdown",
       },
+      {
+        "border": {
+          "color": "yellow",
+          "corner_radius": "5px",
+        },
+        "elements": [
+          {
+            "content": "_（无过程记录）_",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+        ],
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "right",
+          "title": {
+            "content": "🌊 0 · 🫧 0",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+          "vertical_align": "center",
+        },
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
+      },
     ],
   },
   "config": {
@@ -305,6 +365,38 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "content": "partial",
         "tag": "markdown",
       },
+      {
+        "border": {
+          "color": "yellow",
+          "corner_radius": "5px",
+        },
+        "elements": [
+          {
+            "content": "_（无过程记录）_",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+        ],
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "right",
+          "title": {
+            "content": "🌊 0 · 🫧 0",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+          "vertical_align": "center",
+        },
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
+      },
     ],
   },
   "config": {
@@ -324,6 +416,38 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
       {
         "content": "🌊Waving…",
         "tag": "markdown",
+      },
+      {
+        "border": {
+          "color": "grey",
+          "corner_radius": "5px",
+        },
+        "elements": [
+          {
+            "content": "_（无过程记录）_",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+        ],
+        "expanded": false,
+        "header": {
+          "icon": {
+            "size": "16px 16px",
+            "tag": "standard_icon",
+            "token": "down-small-ccm_outlined",
+          },
+          "icon_expanded_angle": -180,
+          "icon_position": "right",
+          "title": {
+            "content": "🌊 0 · 🫧 0",
+            "tag": "markdown",
+            "text_size": "notation",
+          },
+          "vertical_align": "center",
+        },
+        "padding": "8px 8px 8px 8px",
+        "tag": "collapsible_panel",
+        "vertical_spacing": "8px",
       },
     ],
   },
@@ -399,7 +523,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🫧 1",
+            "content": "🌊 0 · 🫧 1",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -447,7 +571,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🫧 1",
+            "content": "🌊 0 · 🫧 1",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -495,7 +619,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🫧 1",
+            "content": "🌊 0 · 🫧 1",
             "tag": "markdown",
             "text_size": "notation",
           },

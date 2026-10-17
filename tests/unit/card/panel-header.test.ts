@@ -32,8 +32,8 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     });
     const title = panelTitle(card);
     const [top, bottom] = title.split('\n');
-    // No thinking/tools yet → top line is just elapsed.
-    expect(top).toMatch(/^✨ \d+s$/);
+    // 猴哥点单: zero counts still show — stable header shape.
+    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 5s');
     expect(bottom).toBe('Gemini-3.8-Flash · max · 25k/1M (2%)');
   });
 
@@ -41,7 +41,7 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     const state = stateWithUsage();
     const card = renderCard(state, { model: 'SomeModel' });
     const title = panelTitle(card);
-    expect(title).toBe('SomeModel');
+    expect(title).toBe('🌊 0 · 🫧 0\nSomeModel');
   });
 
   it('omits the whole ctx piece until usage arrives', () => {
@@ -50,7 +50,7 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       effort: 'high',
       contextWindow: 1000000,
     });
-    expect(panelTitle(card)).toBe('GLM-5.3-Flash · high');
+    expect(panelTitle(card)).toBe('🌊 0 · 🫧 0\nGLM-5.3-Flash · high');
   });
 
   it('formats used/total with k/M units and percentage', () => {
@@ -92,6 +92,12 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     });
     const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
     expect(panelTitle(card)).toContain('25.5k/1M (3%)');
+  });
+
+  it('zero thinking/tool counts still render on the top line', () => {
+    const card = renderCard(initialState, { model: 'M', startedAt: Date.now() - 1000 });
+    const [top] = panelTitle(card).split('\n');
+    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 1s');
   });
 
   it('thinking and tool counts land on the top line', () => {
