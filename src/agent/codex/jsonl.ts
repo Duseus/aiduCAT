@@ -98,23 +98,30 @@ export class CodexJsonlTranslator {
 
   private translateItemStarted(raw: Record<string, unknown>): AgentEvent[] {
     const item = recordValue(raw.item);
-    if (!item || item.type !== 'command_execution') return [];
-    const id = stringValue(item.id);
-    if (!id) {
-      this.drift.anomalies++;
-      return [];
-    }
-    this.startedItems.add(id);
-    return [
-      {
-        type: 'tool_use',
-        id,
-        name: 'command_execution',
-        input: {
-          command: stringValue(item.command) ?? '',
+    if (!item) return [];
+    const itemType = stringValue(item.type);
+    if (itemType === 'command_execution' || itemType === 'mcp_tool_call') {
+      const id = stringValue(item.id);
+      if (!id) {
+        this.drift.anomalies++;
+        return [];
+      }
+      this.startedItems.add(id);
+      const name = itemType === 'mcp_tool_call'
+        ? (stringValue(item.tool) ?? 'mcp_tool_call')
+        : 'command_execution';
+      return [
+        {
+          type: 'tool_use',
+          id,
+          name,
+          input: itemType === 'mcp_tool_call'
+            ? (item.arguments ?? {})
+            : { command: stringValue(item.command) ?? '' },
         },
-      },
-    ];
+      ];
+    }
+    return [];
   }
 
   private translateItemCompleted(raw: Record<string, unknown>): AgentEvent[] {
@@ -124,7 +131,15 @@ export class CodexJsonlTranslator {
       const message = stringValue(item.text ?? item.message);
       return message ? this.queueAgentMessage(message) : [];
     }
-    if (item.type !== 'command_execution') return [];
+    if (item.type === 'reasoning') {
+      const text = stringValue(item.text);
+      if (text && text.trim()) {
+        return [{ type: 'thinking', delta: text }];
+      }
+      return [];
+    }
+    const itemType = stringValue(item.type);
+    if (itemType !== 'command_execution' && itemType !== 'mcp_tool_call') return [];
     const id = stringValue(item.id);
     if (!id) {
       this.drift.anomalies++;
@@ -135,11 +150,14 @@ export class CodexJsonlTranslator {
     }
     this.startedItems.delete(id);
     const exitCode = numberValue(item.exit_code);
+    const output = itemType === 'mcp_tool_call'
+      ? (typeof item.result === 'string' ? item.result : JSON.stringify(item.result ?? ''))
+      : (stringValue(item.output ?? item.aggregated_output ?? item.stdout) ?? '');
     return this.prependPendingText([
       {
         type: 'tool_result',
         id,
-        output: stringValue(item.output ?? item.aggregated_output ?? item.stdout) ?? '',
+        output,
         isError: exitCode !== undefined && exitCode !== 0,
       },
     ]);

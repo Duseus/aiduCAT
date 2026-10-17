@@ -209,12 +209,20 @@ function metaHeader(state: RunState, options: RunCardRenderOptions): string {
 function contextUsageText(state: RunState, options: RunCardRenderOptions): string {
   const u = state.usage;
   if (!u || !options.contextWindow || options.contextWindow <= 0) return '';
-  const used =
-    (u.inputTokens ?? 0) +
-    (u.cachedInputTokens ?? 0) +
-    (u.cacheCreationInputTokens ?? 0) +
-    (u.outputTokens ?? 0);
+  const inTokens = u.inputTokens ?? 0;
+  const cachedTokens = u.cachedInputTokens ?? 0;
+  // If inTokens >= cachedTokens, cached is already counted inside input_tokens (OpenAI/Codex standard).
+  // Otherwise, cached tokens are complementary to prompt tokens (Anthropic standard).
+  const effectiveInput = inTokens >= cachedTokens ? inTokens : inTokens + cachedTokens;
+  const used = effectiveInput + (u.cacheCreationInputTokens ?? 0) + (u.outputTokens ?? 0);
   if (used === 0) return '';
+
+  // If used tokens exceeds physical context window, it is an accumulated session/thread total
+  // rather than a single-turn prompt size. Never claim a physically impossible 100% full window.
+  if (used > options.contextWindow) {
+    return `${formatTokens(used)} (累计)`;
+  }
+
   const pct = Math.min(100, Math.round((used / options.contextWindow) * 100));
   return `${formatTokens(used)}/${formatTokens(options.contextWindow)} (${pct}%)`;
 }
