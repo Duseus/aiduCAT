@@ -65,14 +65,14 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     expect(panelTitle(card)).toContain('500.1k/1M (50%)');
   });
 
-  it('caps at 100%', () => {
+  it('formats accumulated usage without claiming an impossible 100% window fill', () => {
     let state = reduce(initialState, {
       type: 'usage',
       inputTokens: 900_000,
       outputTokens: 200_000,
     });
     const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
-    expect(panelTitle(card)).toContain('1.1M/1M (100%');
+    expect(panelTitle(card)).toContain('1.1M (累计)');
   });
 
   it('ignores the cumulative result-event usage (would show inflated 100%)', () => {
