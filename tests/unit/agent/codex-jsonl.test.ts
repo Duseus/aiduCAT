@@ -63,6 +63,7 @@ describe('Codex JSONL translator', () => {
         outputTokens: 34,
         cachedInputTokens: 5,
         reasoningOutputTokens: 7,
+        cumulative: true,
       },
       { type: 'done', threadId: 'thread-1', terminationReason: 'normal' },
     ]);
