@@ -1246,7 +1246,10 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
         log.fail('stream', err, { mode: replyMode, step: 'progress-stream' });
       }
       await recallIfEmptyStreamedReply(channel, progress, filterForPrefs(latestState), scope);
-      if (controls.profileConfig.agentKind === 'codex') {
+      // aiduCAT: In card mode, if the progress stream card successfully opened, it already
+      // renders both the final answer (blocks or finalText) and the collapsible panel in one unified card.
+      // Only invoke sendFinalReply if the progress stream was never opened or was abandoned.
+      if (controls.profileConfig.agentKind === 'codex' && (!progress.opened() || progress.abandoned())) {
         await sendFinalReply({
           channel,
           chatId,
