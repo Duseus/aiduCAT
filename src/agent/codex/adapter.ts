@@ -287,6 +287,11 @@ async function* createEventStream(
   // context% instead of Codex's multi-million cumulative session total.
   if (codexHomeDir) {
     const lastUsage = await extractCodexLastUsage(codexHomeDir);
+    log.info('agent', 'codex-last-usage', {
+      codexHomeDir,
+      found: Boolean(lastUsage),
+      ...(lastUsage ?? {}),
+    });
     if (lastUsage) {
       yield {
         type: 'usage',
