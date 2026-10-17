@@ -87,7 +87,11 @@ export class ClaudeAdapter implements AgentAdapter {
     ];
     if (opts.sessionId) args.push('--resume', opts.sessionId);
     if (opts.model) args.push('--model', opts.model);
-    if (opts.effort) args.push('--effort', opts.effort);
+    if (opts.effort) {
+      // Claude Code validates low/medium/high/xhigh/max. If ultra was selected (e.g. from codex profile), fallback to max.
+      const effort = opts.effort === 'ultra' ? 'max' : opts.effort;
+      args.push('--effort', effort);
+    }
 
     const child = spawnProcess(this.binary, args, {
       cwd: opts.cwd,

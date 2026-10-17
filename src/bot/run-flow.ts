@@ -148,13 +148,15 @@ export async function startRunFlow(input: StartRunFlowInput): Promise<StartRunFl
         input.profileConfig.agentKind,
         input.profileConfig.preferences.model,
       ),
-      // aiduCAT: forward the stored reasoning effort as --effort (claude only;
-      // claude CLI validates low/medium/high/xhigh/max and falls back to its
-      // own default when unset).
+      // aiduCAT: forward the stored reasoning effort (claude forwards as --effort,
+      // codex forwards as -c model_reasoning_effort="..."). If claude is set to
+      // 'ultra' (supported on codex), automatically coerce to 'max' to avoid CLI warnings.
       effort:
         input.capability.agentId === 'claude'
-          ? input.profileConfig.preferences.effort
-          : undefined,
+          ? input.profileConfig.preferences.effort === 'ultra'
+            ? 'max'
+            : input.profileConfig.preferences.effort
+          : input.profileConfig.preferences.effort,
       images:
         input.capability.agentId === 'codex'
           ? policy.attachments
