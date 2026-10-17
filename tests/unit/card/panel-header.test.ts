@@ -41,7 +41,7 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     const state = stateWithUsage();
     const card = renderCard(state, { model: 'SomeModel' });
     const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0\nSomeModel');
+    expect(title).toBe('🌊 0 · 🫧 0\nSomeModel · 25k/1M (3%)');
   });
 
   it('omits the whole ctx piece until usage arrives', () => {
@@ -72,7 +72,7 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       outputTokens: 200_000,
     });
     const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
-    expect(panelTitle(card)).toContain('1.1M (累计)');
+    expect(panelTitle(card)).toContain('1.1M/1M (100%)');
   });
 
   it('ignores the cumulative result-event usage (would show inflated 100%)', () => {

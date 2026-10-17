@@ -214,15 +214,13 @@ function metaHeader(state: RunState, options: RunCardRenderOptions): string {
 }
 
 /**
- * aiduCAT: `23k/1M (2%)` — how full the model's context window is right now.
- * Used tokens ≈ everything the last API call carried in (fresh input +
- * cache read + cache creation) plus what it produced. Without a known
- * contextWindow (non-10router model, or gateway unreachable) the readout is
- * omitted rather than guessed.
+ * aiduCAT: `***k/1M (xx%)` — how full the model's context window is right now.
+ * Used tokens = prompt tokens (accounting for cached subsets) + output tokens.
+ * Always scales against the real 1M context window deployed on 10router.
  */
 function contextUsageText(state: RunState, options: RunCardRenderOptions): string {
   const u = state.usage;
-  if (!u || !options.contextWindow || options.contextWindow <= 0) return '';
+  if (!u) return '';
   const inTokens = u.inputTokens ?? 0;
   const cachedTokens = u.cachedInputTokens ?? 0;
   // If inTokens >= cachedTokens, cached is already counted inside input_tokens (OpenAI/Codex standard).
@@ -231,14 +229,10 @@ function contextUsageText(state: RunState, options: RunCardRenderOptions): strin
   const used = effectiveInput + (u.cacheCreationInputTokens ?? 0) + (u.outputTokens ?? 0);
   if (used === 0) return '';
 
-  // If used tokens exceeds physical context window, it is an accumulated session/thread total
-  // rather than a single-turn prompt size. Never claim a physically impossible 100% full window.
-  if (used > options.contextWindow) {
-    return `${formatTokens(used)} (累计)`;
-  }
-
-  const pct = Math.min(100, Math.round((used / options.contextWindow) * 100));
-  return `${formatTokens(used)}/${formatTokens(options.contextWindow)} (${pct}%)`;
+  // 猴哥点单: 10router 上模型全量开放 1M (1,000,000) 上下文，分母基准统一保底 1M，彻底杜绝 '(累计)' 字样
+  const windowSize = Math.max(options.contextWindow ?? 1_000_000, 1_000_000);
+  const pct = Math.min(100, Math.round((used / windowSize) * 100));
+  return `${formatTokens(used)}/${formatTokens(windowSize)} (${pct}%)`;
 }
 
 /** aiduCAT: 25046 -> `25k`, 1048576 -> `1M`, 500100 -> `500.1k`, 950 -> `950`. */
