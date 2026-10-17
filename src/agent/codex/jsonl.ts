@@ -186,6 +186,7 @@ export class CodexJsonlTranslator {
         reasoningOutputTokens: numberValue(
           usage.reasoning_output_tokens ?? usage.reasoningOutputTokens,
         ),
+        cumulative: true,
       });
     }
     events.push({ type: 'done', threadId: this.threadId, terminationReason: 'normal' });

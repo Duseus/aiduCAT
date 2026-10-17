@@ -17,6 +17,7 @@ import type {
 } from '../types';
 import { buildCodexArgs } from './argv';
 import { CodexJsonlTranslator, type CodexFinishReason } from './jsonl';
+import { extractCodexLastUsage } from './history-usage';
 
 export interface CodexAdapterOptions {
   binary: string;
@@ -158,9 +159,13 @@ export class CodexAdapter implements AgentAdapter {
 
     const stopGraceMs = opts.stopGraceMs ?? this.defaultStopGraceMs;
 
+    const codexHomeDir = this.codexHome
+      ? this.codexHome
+      : (this.inheritCodexHome ? (process.env.CODEX_HOME || join(process.env.HOME || '/data/home', '.codex')) : join(this.profileStateDir, 'codex-home'));
+
     return {
       runId: opts.runId,
-      events: createEventStream(child, stderrChunks, () => runtimeError, () => stopReason),
+      events: createEventStream(child, stderrChunks, () => runtimeError, () => stopReason, codexHomeDir),
       async stop() {
         if (child.exitCode !== null || child.signalCode !== null) return;
         stopReason = 'interrupted';
@@ -209,6 +214,7 @@ async function* createEventStream(
   stderrChunks: Buffer[],
   getError: () => Error | null,
   getStopReason: () => CodexFinishReason | undefined,
+  codexHomeDir?: string,
 ): AsyncGenerator<AgentEvent> {
   const translator = new CodexJsonlTranslator();
   if (!child.pid) {
@@ -274,6 +280,21 @@ async function* createEventStream(
   if (runtimeError && !translator.terminalEmitted()) {
     yield* translator.fail(`codex runtime error: ${runtimeError.message}`);
     return;
+  }
+
+  // aiduCAT: extract the single-turn physical context window fill (`last_token_usage`)
+  // from the session rollout file before finishing, so the card renders the true
+  // context% instead of Codex's multi-million cumulative session total.
+  if (codexHomeDir) {
+    const lastUsage = await extractCodexLastUsage(codexHomeDir);
+    if (lastUsage) {
+      yield {
+        type: 'usage',
+        inputTokens: lastUsage.inputTokens,
+        outputTokens: lastUsage.outputTokens,
+        cachedInputTokens: lastUsage.cachedInputTokens,
+      };
+    }
   }
 
   yield* translator.finish();
