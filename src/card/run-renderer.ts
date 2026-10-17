@@ -30,16 +30,30 @@ export interface RunCardRenderOptions {
 export function renderCard(state: RunState, options: RunCardRenderOptions = {}): object {
   const elements: object[] = [];
 
-  // aiduCAT: answer (text blocks) first, single aiduPOP panel below.
+  // aiduCAT: answer (text blocks or final_text) first, single aiduPOP panel below.
+  const answerBlocks: string[] = [];
   for (const group of groupBlocks(state.blocks)) {
     if (group.kind === 'text') {
-      if (group.content.trim()) {
+      const trimmed = group.content.trim();
+      if (trimmed) {
         // aiduCAT clarify: strip anything from a [CLARIFY] sentinel on — the
         // marker line (complete or half-streamed) never reaches the card.
-        elements.push(
-          markdown((group.content.split('[CLARIFY]')[0] ?? '').replace(/\n+$/, '')),
-        );
+        answerBlocks.push((group.content.split('[CLARIFY]')[0] ?? '').replace(/\n+$/, ''));
       }
+    }
+  }
+  // Codex delivers the terminal response as `finalText` rather than stream text blocks.
+  // Ensure it renders in the answer area above the panel so codex and claude have
+  // the exact same unified single-card layout.
+  if (state.finalText && state.finalText.trim()) {
+    const stripped = (state.finalText.split('[CLARIFY]')[0] ?? '').replace(/\n+$/, '');
+    if (!answerBlocks.some((b) => b.includes(stripped) || stripped.includes(b))) {
+      answerBlocks.push(stripped);
+    }
+  }
+  for (const text of answerBlocks) {
+    if (text.trim()) {
+      elements.push(markdown(text));
     }
   }
 
