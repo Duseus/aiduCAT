@@ -247,6 +247,30 @@ async function* createEventStream(
       } catch {
         continue;
       }
+
+      // aiduCAT: `turn.completed` makes the translator emit `done`, and the
+      // stream consumer stops at the first terminal event — so the exit-time
+      // extraction below never runs for normal completions. Extract the
+      // single-turn physical context fill BEFORE translating turn.completed.
+      const parsedType =
+        typeof parsed === 'object' && parsed !== null ? (parsed as { type?: string }).type : undefined;
+      if (codexHomeDir && parsedType === 'turn.completed') {
+        const lastUsage = await extractCodexLastUsage(codexHomeDir);
+        log.info('agent', 'codex-last-usage', {
+          codexHomeDir,
+          found: Boolean(lastUsage),
+          ...(lastUsage ?? {}),
+        });
+        if (lastUsage) {
+          yield {
+            type: 'usage',
+            inputTokens: lastUsage.inputTokens,
+            outputTokens: lastUsage.outputTokens,
+            cachedInputTokens: lastUsage.cachedInputTokens,
+          };
+        }
+      }
+
       yield* translator.translate(parsed);
     }
   } finally {
@@ -280,26 +304,6 @@ async function* createEventStream(
   if (runtimeError && !translator.terminalEmitted()) {
     yield* translator.fail(`codex runtime error: ${runtimeError.message}`);
     return;
-  }
-
-  // aiduCAT: extract the single-turn physical context window fill (`last_token_usage`)
-  // from the session rollout file before finishing, so the card renders the true
-  // context% instead of Codex's multi-million cumulative session total.
-  if (codexHomeDir) {
-    const lastUsage = await extractCodexLastUsage(codexHomeDir);
-    log.info('agent', 'codex-last-usage', {
-      codexHomeDir,
-      found: Boolean(lastUsage),
-      ...(lastUsage ?? {}),
-    });
-    if (lastUsage) {
-      yield {
-        type: 'usage',
-        inputTokens: lastUsage.inputTokens,
-        outputTokens: lastUsage.outputTokens,
-        cachedInputTokens: lastUsage.cachedInputTokens,
-      };
-    }
   }
 
   yield* translator.finish();
