@@ -46,10 +46,11 @@ describe('ClaudeAdapter process contract', () => {
     // The prompt goes via stdin, and the bridge system prompt via a temp file,
     // so neither ever touches argv (which cmd.exe would mangle on Windows).
     expect(record.stdin).toBe('hello');
-    expect(record.argv.slice(0, 7)).toEqual([
+    expect(record.argv.slice(0, 8)).toEqual([
       '-p',
       '--output-format',
       'stream-json',
+      '--include-partial-messages',
       '--verbose',
       '--permission-mode',
       'acceptEdits',
@@ -123,7 +124,7 @@ describe('ClaudeAdapter process contract', () => {
     const record = await readRecord(fake.recordPath);
 
     expect(record.argv.slice(-4)).toEqual(['--resume', 'sess-old', '--model', 'sonnet']);
-    expect(record.argv[5]).toBe('bypassPermissions');
+    expect(record.argv[6]).toBe('bypassPermissions');
   });
 
   it('includes stderr when the process exits non-zero', async () => {

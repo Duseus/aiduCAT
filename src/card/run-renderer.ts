@@ -20,6 +20,11 @@ export interface RunCardRenderOptions {
   model?: string;
   /** aiduCAT: epoch ms when the run started, for elapsed-time in meta panel. */
   startedAt?: number;
+  /** aiduCAT: reasoning effort (low..max), shown on the panel header line 1. */
+  effort?: string;
+  /** aiduCAT: model context window (tokens) from 10router; enables the
+   * context-usage percentage on header line 1. Undefined = no percentage. */
+  contextWindow?: number;
 }
 
 export function renderCard(state: RunState, options: RunCardRenderOptions = {}): object {
@@ -160,27 +165,64 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
 }
 
 /**
- * aiduPOP header fragment: `☤ model · 🌊 n · 🫧 n · ✨ elapsed`. Each piece
- * only appears when it has a value; separators are the aiduPOP `·`.
+ * aiduPOP header, two lines (猴哥点单 f0.1):
+ *   top line:    🌊 thinking-n · 🫧 tool-n · ✨ elapsed
+ *   bottom line: model · effort · 23k/1M (2%)   (plain text, no emoji)
+ * Each piece only appears when it has a value; separators are the aiduPOP `·`.
  * Elapsed keeps ticking across card updates because renderCard is re-run on
  * every streaming update with the fixed `options.startedAt`.
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
-  const pieces: string[] = [];
+  const line1: string[] = [];
   // aiduCAT f0.1: the live status word moved out of the header — it renders on
   // its own line above the panel (below the answer, left-aligned) so the panel
   // header stays uniformly clean at all times.
-  if (options.model) pieces.push(`☤ ${options.model}`);
-  if (state.reasoning.segments > 0) pieces.push(`🌊 ${state.reasoning.segments}`);
+  if (options.model) line1.push(options.model);
+  if (options.effort) line1.push(options.effort);
+  const ctx = contextUsageText(state, options);
+  if (ctx) line1.push(ctx);
+  if (state.terminal === 'error') line1.push('❌');
+
+  const line2: string[] = [];
+  if (state.reasoning.segments > 0) line2.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  if (toolCount > 0) pieces.push(`🫧 ${toolCount}`);
+  if (toolCount > 0) line2.push(`🫧 ${toolCount}`);
   if (options.startedAt) {
     const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
     const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
-    pieces.push(`✨ ${label}`);
+    line2.push(`✨ ${label}`);
   }
-  if (state.terminal === 'error') pieces.push('❌');
-  return pieces.join(' · ');
+
+  // 猴哥点单: counts/elapsed on top, model/effort/context below.
+  return [line2.join(' · '), line1.join(' · ')].filter(Boolean).join('\n');
+}
+
+/**
+ * aiduCAT: `23k/1M (2%)` — how full the model's context window is right now.
+ * Used tokens ≈ everything the last API call carried in (fresh input +
+ * cache read + cache creation) plus what it produced. Without a known
+ * contextWindow (non-10router model, or gateway unreachable) the readout is
+ * omitted rather than guessed.
+ */
+function contextUsageText(state: RunState, options: RunCardRenderOptions): string {
+  const u = state.usage;
+  if (!u || !options.contextWindow || options.contextWindow <= 0) return '';
+  const used =
+    (u.inputTokens ?? 0) +
+    (u.cachedInputTokens ?? 0) +
+    (u.cacheCreationInputTokens ?? 0) +
+    (u.outputTokens ?? 0);
+  if (used === 0) return '';
+  const pct = Math.min(100, Math.round((used / options.contextWindow) * 100));
+  return `${formatTokens(used)}/${formatTokens(options.contextWindow)} (${pct}%)`;
+}
+
+/** aiduCAT: 25046 -> `25k`, 1048576 -> `1M`, 500100 -> `500.1k`, 950 -> `950`. */
+function formatTokens(n: number): string {
+  const trim = (x: number) => x.toFixed(1).replace(/\.0$/, '');
+  if (n >= 1_000_000) return `${trim(n / 1_000_000)}M`;
+  if (n >= 1_000) return `${trim(n / 1_000)}k`;
+  return String(n);
 }
 
 function* groupBlocks(blocks: Block[]): Generator<Group> {

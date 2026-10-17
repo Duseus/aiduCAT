@@ -38,6 +38,15 @@ export interface RunState {
   /** aiduCAT clarify: last parsed question marker (rendered as option buttons
    * under the answer when the run ends waiting on user input). */
   clarify?: ClarifyQuestion;
+  /** aiduCAT: latest token usage seen this run (assistant messages carry
+   * per-message usage; the result event carries the final one). Drives the
+   * context-window percentage in the panel header. */
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    cachedInputTokens?: number;
+    cacheCreationInputTokens?: number;
+  };
 }
 
 export const initialState: RunState = {
@@ -138,6 +147,23 @@ export function reduce(state: RunState, evt: AgentEvent): RunState {
 
     case 'final_text':
       return { ...state, finalText: evt.content };
+
+    case 'usage':
+      // aiduCAT: keep the latest per-message usage snapshot for the context
+      // readout. The terminal `result` event carries the whole-turn CUMULATIVE
+      // billing total (summed across every tool round) — using it would show a
+      // wildly inflated, capped 100%. Only per-message snapshots reflect the
+      // live context-window fill, so cumulative ones are ignored here.
+      if (evt.cumulative) return state;
+      return {
+        ...state,
+        usage: {
+          inputTokens: evt.inputTokens,
+          outputTokens: evt.outputTokens,
+          cachedInputTokens: evt.cachedInputTokens,
+          cacheCreationInputTokens: evt.cacheCreationInputTokens,
+        },
+      };
 
     case 'thinking': {
       // A new thinking burst (previous burst was closed by text/tool) bumps
