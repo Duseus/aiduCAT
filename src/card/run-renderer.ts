@@ -183,10 +183,12 @@ function metaHeader(state: RunState, options: RunCardRenderOptions): string {
   if (ctx) line1.push(ctx);
   if (state.terminal === 'error') line1.push('❌');
 
+  // 猴哥点单 f0.1+: counts always show, even at zero — the header keeps a
+  // stable shape instead of pieces popping in and out.
   const line2: string[] = [];
-  if (state.reasoning.segments > 0) line2.push(`🌊 ${state.reasoning.segments}`);
+  line2.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  if (toolCount > 0) line2.push(`🫧 ${toolCount}`);
+  line2.push(`🫧 ${toolCount}`);
   if (options.startedAt) {
     const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
     const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
