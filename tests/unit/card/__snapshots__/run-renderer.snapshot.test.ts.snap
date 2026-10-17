@@ -30,7 +30,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🫧 3",
             "tag": "markdown",
@@ -80,7 +80,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🫧 3",
             "tag": "markdown",
@@ -132,7 +132,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🌊 1",
             "tag": "markdown",
@@ -184,7 +184,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🌊 1",
             "tag": "markdown",
@@ -253,7 +253,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "❌",
             "tag": "markdown",
@@ -397,7 +397,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🫧 1",
             "tag": "markdown",
@@ -445,7 +445,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🫧 1",
             "tag": "markdown",
@@ -493,7 +493,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
             "token": "down-small-ccm_outlined",
           },
           "icon_expanded_angle": -180,
-          "icon_position": "follow_text",
+          "icon_position": "right",
           "title": {
             "content": "🫧 1",
             "tag": "markdown",

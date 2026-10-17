@@ -277,7 +277,9 @@ function panelHeader(titleMd: string): object {
     title: { tag: 'markdown', content: titleMd, text_size: 'notation' },
     vertical_align: 'center',
     icon: { tag: 'standard_icon', token: 'down-small-ccm_outlined', size: '16px 16px' },
-    icon_position: 'follow_text',
+    // 猴哥点单: pin the chevron to the far right of the header row instead of
+    // hugging the title text (follow_text) — cleaner with the two-line header.
+    icon_position: 'right',
     icon_expanded_angle: -180,
   };
 }
