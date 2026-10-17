@@ -229,6 +229,8 @@ async function* createEventStream(
 
   const rl = createInterface({ input: child.stdout, crlfDelay: Infinity });
   let sawStdout = false;
+  let lastUsageFetchAt = 0;
+  let lastKnownUsage: { inputTokens?: number; outputTokens?: number; cachedInputTokens?: number } | undefined;
   let silentExitTimer: ReturnType<typeof setTimeout> | undefined;
   const closeSilentStdout = (): void => {
     silentExitTimer = setTimeout(() => {
@@ -248,27 +250,31 @@ async function* createEventStream(
         continue;
       }
 
-      // aiduCAT: `turn.completed` makes the translator emit `done`, and the
-      // stream consumer stops at the first terminal event — so the exit-time
-      // extraction below never runs for normal completions. Extract the
-      // single-turn physical context fill BEFORE translating turn.completed.
       const parsedType =
         typeof parsed === 'object' && parsed !== null ? (parsed as { type?: string }).type : undefined;
-      if (codexHomeDir && parsedType === 'turn.completed') {
-        const lastUsage = await extractCodexLastUsage(codexHomeDir);
-        log.info('agent', 'codex-last-usage', {
-          codexHomeDir,
-          found: Boolean(lastUsage),
-          ...(lastUsage ?? {}),
-        });
-        if (lastUsage) {
-          yield {
-            type: 'usage',
-            inputTokens: lastUsage.inputTokens,
-            outputTokens: lastUsage.outputTokens,
-            cachedInputTokens: lastUsage.cachedInputTokens,
-          };
+
+      // aiduCAT: refresh the true per-turn context fill on every completed item
+      // (throttled to 15s) so the header tracks live usage on any Codex version
+      // and any exit path — regardless of which terminal event the CLI emits.
+      if (codexHomeDir && parsedType === 'item.completed') {
+        const nowMs = Date.now();
+        if (!lastUsageFetchAt || nowMs - lastUsageFetchAt > 15_000) {
+          lastUsageFetchAt = nowMs;
+          const lastUsage = await extractCodexLastUsage(codexHomeDir);
+          if (lastUsage) {
+            lastKnownUsage = lastUsage;
+            yield {
+              type: 'usage',
+              inputTokens: lastUsage.inputTokens,
+              outputTokens: lastUsage.outputTokens,
+              cachedInputTokens: lastUsage.cachedInputTokens,
+            };
+          }
         }
+      }
+
+      if (codexHomeDir && parsedType === 'turn.completed' && lastKnownUsage) {
+        log.info('agent', 'codex-last-usage', { ...lastKnownUsage });
       }
 
       yield* translator.translate(parsed);
@@ -277,6 +283,20 @@ async function* createEventStream(
     if (silentExitTimer) clearTimeout(silentExitTimer);
     child.removeListener('exit', closeSilentStdout);
     rl.close();
+    // aiduCAT: final guaranteed refresh — run-state keeps whichever usage
+    // snapshot arrives last before/carrying the terminal event.
+    if (codexHomeDir) {
+      const lastUsage = await extractCodexLastUsage(codexHomeDir);
+      if (lastUsage) {
+        lastKnownUsage = lastUsage;
+        yield {
+          type: 'usage',
+          inputTokens: lastUsage.inputTokens,
+          outputTokens: lastUsage.outputTokens,
+          cachedInputTokens: lastUsage.cachedInputTokens,
+        };
+      }
+    }
   }
 
   const earlyRuntimeError = getError();
