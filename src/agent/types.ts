@@ -15,8 +15,13 @@ export type AgentEvent =
       inputTokens?: number;
       outputTokens?: number;
       cachedInputTokens?: number;
+      cacheCreationInputTokens?: number;
       reasoningOutputTokens?: number;
       costUsd?: number;
+      /** True for the terminal `result` event, whose usage is the whole-turn
+       * cumulative billing total — NOT the live context-window fill. The panel
+       * readout ignores cumulative snapshots and keeps the per-message one. */
+      cumulative?: boolean;
     }
   | {
       type: 'done';

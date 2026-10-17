@@ -67,6 +67,19 @@ import { fetchQuotedContext, fetchTopicContext, type QuotedContext } from './quo
 import { lookupMessageThreadId } from './thread-id';
 import { addWorkingReaction, removeReaction } from './reaction';
 import { fetchKnownChats } from './lark-info';
+import { fetchContextWindows } from './tenrouter';
+
+/**
+ * aiduCAT: context window for the run's model, from 10router's /v1/models
+ * (cached 10 min). Returns undefined when 10router isn't configured or the
+ * model isn't listed — the panel then omits the context percentage.
+ */
+async function contextWindowForModel(model: string | undefined): Promise<number | undefined> {
+  const url = (process.env.AIDU_10ROUTER_URL ?? '').trim();
+  if (!url || !model) return undefined;
+  const windows = await fetchContextWindows(url);
+  return windows.get(model);
+}
 import type { AppPaths } from '../config/app-paths';
 import {
   consumeCotEvents,
@@ -1074,6 +1087,10 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
     // aiduCAT: surface model + start time in the meta panel.
     model: modelSelection,
     startedAt: Date.now(),
+    // aiduCAT: reasoning effort + this model's context window (10router
+    // /v1/models, cached) drive the two-line panel header readout.
+    effort: controls.profileConfig.preferences.effort,
+    contextWindow: await contextWindowForModel(modelSelection),
     ...(callbackAuth
       ? {
           signCallback: (action: string) =>
@@ -1672,7 +1689,8 @@ async function processAgentStream(
           if (inputTokens !== undefined) reportMetric('tokens_in', inputTokens);
           if (outputTokens !== undefined) reportMetric('tokens_out', outputTokens);
         }
-        continue;
+        // aiduCAT: fall through to reduce() so the panel header can show the
+        // context-window percentage — usage rides on the state now.
       }
 
       const prevTerminal = state.terminal;

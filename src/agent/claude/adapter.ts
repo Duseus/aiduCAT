@@ -74,6 +74,11 @@ export class ClaudeAdapter implements AgentAdapter {
       '-p',
       '--output-format',
       'stream-json',
+      // aiduCAT: partial messages carry `message_delta.usage` — the only
+      // per-API-call token snapshot the CLI emits (assistant events report
+      // zeros and `result` reports the whole-turn cumulative sum). Without
+      // this flag the panel's context-window readout can't be live or right.
+      '--include-partial-messages',
       '--verbose',
       '--permission-mode',
       opts.permissionMode ?? CLAUDE_DEFAULT_PERMISSION_MODE,

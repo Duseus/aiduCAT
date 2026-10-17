@@ -18,11 +18,20 @@ interface ClaudeRawEvent {
   session_id?: string;
   cwd?: string;
   model?: string;
-  message?: { content?: ContentBlock[] };
+  message?: {
+    content?: ContentBlock[];
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_read_input_tokens?: number;
+      cache_creation_input_tokens?: number;
+    };
+  };
   usage?: {
     input_tokens?: number;
     output_tokens?: number;
     cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
   };
   total_cost_usd?: number;
 }
@@ -51,6 +60,40 @@ export function* translateEvent(raw: unknown): Generator<AgentEvent> {
         yield { type: 'tool_use', id: block.id, name: block.name, input: block.input };
       }
     }
+    // aiduCAT: assistant-message usage is zero-filled for gateway models (the
+    // real per-call numbers ride on message_delta) — only surface it when it
+    // actually carries tokens, so a zero snapshot never clobbers a good one.
+    const u = evt.message.usage;
+    if (u && ((u.input_tokens ?? 0) > 0 || (u.output_tokens ?? 0) > 0)) {
+      yield {
+        type: 'usage',
+        inputTokens: u.input_tokens,
+        outputTokens: u.output_tokens,
+        cachedInputTokens: u.cache_read_input_tokens,
+        cacheCreationInputTokens: u.cache_creation_input_tokens,
+      };
+    }
+    return;
+  }
+
+  // aiduCAT: with --include-partial-messages the CLI forwards raw Anthropic
+  // stream events. `message_delta` carries the authoritative per-API-call
+  // usage (input+cache tokens = the context this call actually loaded), which
+  // is what the panel's live context readout needs.
+  if (evt.type === 'stream_event') {
+    const inner = (evt as { event?: { type?: string; usage?: ClaudeRawEvent['usage'] } }).event;
+    if (inner?.type === 'message_delta' && inner.usage) {
+      const u = inner.usage;
+      if ((u.input_tokens ?? 0) > 0 || (u.output_tokens ?? 0) > 0) {
+        yield {
+          type: 'usage',
+          inputTokens: u.input_tokens,
+          outputTokens: u.output_tokens,
+          cachedInputTokens: u.cache_read_input_tokens,
+          cacheCreationInputTokens: u.cache_creation_input_tokens,
+        };
+      }
+    }
     return;
   }
 
@@ -77,7 +120,9 @@ export function* translateEvent(raw: unknown): Generator<AgentEvent> {
         inputTokens: evt.usage.input_tokens,
         outputTokens: evt.usage.output_tokens,
         cachedInputTokens: evt.usage.cache_read_input_tokens,
+        cacheCreationInputTokens: evt.usage.cache_creation_input_tokens,
         costUsd: evt.total_cost_usd,
+        cumulative: true,
       };
     }
     yield { type: 'done', sessionId: evt.session_id, terminationReason: 'normal' };

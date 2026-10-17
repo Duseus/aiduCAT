@@ -77,10 +77,42 @@ describe('Claude stream-json translator', () => {
         total_cost_usd: 0.1234,
       }),
     ]).toEqual([
-      { type: 'usage', inputTokens: 12, outputTokens: 34, cachedInputTokens: 5, costUsd: 0.1234 },
+      {
+        type: 'usage',
+        inputTokens: 12,
+        outputTokens: 34,
+        cachedInputTokens: 5,
+        cacheCreationInputTokens: undefined,
+        costUsd: 0.1234,
+        cumulative: true,
+      },
       { type: 'done', sessionId: 'sess-2', terminationReason: 'normal' },
     ]);
     expect([...translateEvent({ type: 'result', session_id: 'sess-2' })][0]).not.toHaveProperty('threadId');
+  });
+
+  it('translates message_delta usage from partial stream events', () => {
+    expect([
+      ...translateEvent({
+        type: 'stream_event',
+        event: {
+          type: 'message_delta',
+          usage: { input_tokens: 6697, output_tokens: 195, cache_read_input_tokens: 17648 },
+        },
+      }),
+    ]).toEqual([
+      {
+        type: 'usage',
+        inputTokens: 6697,
+        outputTokens: 195,
+        cachedInputTokens: 17648,
+        cacheCreationInputTokens: undefined,
+      },
+    ]);
+    // Zero-filled deltas (gateway quirks) must not clobber a good snapshot.
+    expect([...translateEvent({ type: 'stream_event', event: { type: 'message_delta', usage: { input_tokens: 0, output_tokens: 0 } } })]).toEqual([]);
+    // Non-usage stream events are consumed silently.
+    expect([...translateEvent({ type: 'stream_event', event: { type: 'content_block_delta' } })]).toEqual([]);
   });
 
   it('ignores unknown, empty, and incomplete raw events', () => {

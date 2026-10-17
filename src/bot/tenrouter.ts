@@ -16,6 +16,10 @@ import type { AppConfig, SecretInput } from '../config/schema';
  */
 
 const COMBOS_TIMEOUT_MS = 8_000;
+// aiduCAT: /v1/models is a fat payload (~200KB, 500+ entries) behind a
+// Cloudflare tunnel — 3s+ is normal and tunnel jitter can double it. Give it
+// its own generous budget so one slow fetch doesn't blank the ctx% readout.
+const MODELS_TIMEOUT_MS = 20_000;
 
 export interface TenRouterCombo {
   id: string;
@@ -124,4 +128,44 @@ export async function fetchCombos(cfg: TenRouterConfig): Promise<ComboCatalog> {
 /** Invalidate the cache (e.g. after a preference write, so the next open refetches). */
 export function invalidateComboCache(): void {
   cache = undefined;
+}
+
+/**
+ * aiduCAT: model name -> context window size, from 10router's /v1/models
+ * (each combo entry carries `capabilities.contextWindow`). Used to render the
+ * context-usage percentage in the run panel header. Fetched with the runtime
+ * API key (ANTHROPIC_API_KEY), cached 10 min; failures yield an empty map so
+ * the panel simply omits the percentage.
+ */
+const MODELS_TTL_MS = 10 * 60_000;
+let contextWindows: { map: Map<string, number>; fetchedAt: number } | undefined;
+
+export async function fetchContextWindows(baseUrl: string): Promise<Map<string, number>> {
+  if (contextWindows && Date.now() - contextWindows.fetchedAt < MODELS_TTL_MS) {
+    return contextWindows.map;
+  }
+  const apiKey = (process.env.ANTHROPIC_API_KEY ?? '').trim();
+  if (!apiKey) return contextWindows?.map ?? new Map();
+  try {
+    const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/v1/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(MODELS_TIMEOUT_MS),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as {
+      data?: Array<{ id?: string; capabilities?: { contextWindow?: number } }>;
+    };
+    const map = new Map<string, number>();
+    for (const m of body.data ?? []) {
+      const cw = m.capabilities?.contextWindow;
+      if (m.id && typeof cw === 'number' && cw > 0) map.set(m.id, cw);
+    }
+    if (map.size > 0) contextWindows = { map, fetchedAt: Date.now() };
+    return map;
+  } catch (err) {
+    log.warn('tenrouter', 'models-fetch-failed', {
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return contextWindows?.map ?? new Map();
+  }
 }

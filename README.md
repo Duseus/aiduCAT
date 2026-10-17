@@ -32,7 +32,7 @@ aiduCAT originates from and credits the upstream [zarazhangrui/lark-coding-agent
 | Feature | Description |
 |---------|-------------|
 | 🫧 **Single Bubble panel** | The answer streams on top; thinking and all tool calls fold into one collapsible panel (aiduPOP layout) |
-| ☤ **Emoji-only counter header** | Collapsed, the header reads `status · ☤ model · 🌊 thinking · 🫧 tools · ✨ elapsed` — no caption text |
+| ☤ **Two-line counter header** | Collapsed, the header reads `🌊 thinking · 🫧 tools · ✨ elapsed` over `model · effort · 25k/1M (2%)` — no caption text |
 | 👩🏻‍💻 **Per-tool emoji** | Bash👩🏻‍💻 Read👩🏻‍🏫 Edit👩🏻‍🔧 Write👩🏻‍🎨 Grep🕵🏻 Glob🥷🏻 Web👩🏻‍🚀 Agent👯🏻 — one face per tool family |
 | 🚦 **Border = status** | done green / stopped yellow / error red — read the result at a glance, no trailing notes |
 | 🎹 **Typing reaction** | A Typing emoji lands on your message the moment it arrives, and vanishes as soon as real work starts |
@@ -90,12 +90,14 @@ One card, three parts:
 ```
 [final answer, streamed]
 
+🫧Poping…                                    ← live status line (above panel)
 ┌─────────────────────────────────────┐
-│ 🫧Poping… · ☤ Gemini-3.8-Flash · 🌊 2 · 🫧 4 · ✨ 38s │  ← collapsed header
+│  2 · 🫧 4 · ✨ 38s                  │  ← header line 1: counters
+│ Gemini-3.8-Flash · max · 25k/1M (2%) │  ← header line 2: model · effort · context
 └─────────────────────────────────────┘
 ```
 
-- **While running**: the header leads with a live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…), then model / thinking segments / tool count / elapsed time
+- **While running**: a live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…) rides on its own line above the panel; the two-line header shows thinking segments / tool count / elapsed time on top, model · effort · live context usage (`25k/1M (2%)`, refreshed per API call) below
 - **Expanded panel**: thinking text is prefixed 🌊; each tool line carries its own emoji (👩🏻‍💻Bash 👩🏻‍🏫Read 👩🏻‍🔧Edit 👩🏻‍🎨Write 🕵🏻Grep 🥷🏻Glob 👩🏻‍🚀Web 👯🏻agent 🤵🏻other)
 - **On completion**: the status word disappears; the **panel border carries the result** — done green / stopped yellow / error red
 
