@@ -230,6 +230,7 @@ async function* createEventStream(
   const rl = createInterface({ input: child.stdout, crlfDelay: Infinity });
   let sawStdout = false;
   let lastUsageFetchAt = 0;
+  let threadId: string | undefined;
   let lastKnownUsage: { inputTokens?: number; outputTokens?: number; cachedInputTokens?: number } | undefined;
   let silentExitTimer: ReturnType<typeof setTimeout> | undefined;
   const closeSilentStdout = (): void => {
@@ -253,6 +254,13 @@ async function* createEventStream(
       const parsedType =
         typeof parsed === 'object' && parsed !== null ? (parsed as { type?: string }).type : undefined;
 
+      // aiduCAT: `thread.started` carries this run's thread_id — pin the exact
+      // rollout file so concurrent group/p2p runs read their own usage only.
+      if (parsedType === 'thread.started' && typeof parsed === 'object' && parsed !== null) {
+        const maybeThread = (parsed as { thread_id?: unknown }).thread_id;
+        if (typeof maybeThread === 'string' && maybeThread) threadId = maybeThread;
+      }
+
       // aiduCAT: refresh the true per-turn context fill on every completed item
       // (throttled to 15s) so the header tracks live usage on any Codex version
       // and any exit path — regardless of which terminal event the CLI emits.
@@ -260,7 +268,7 @@ async function* createEventStream(
         const nowMs = Date.now();
         if (!lastUsageFetchAt || nowMs - lastUsageFetchAt > 15_000) {
           lastUsageFetchAt = nowMs;
-          const lastUsage = await extractCodexLastUsage(codexHomeDir);
+          const lastUsage = await extractCodexLastUsage(codexHomeDir, threadId);
           if (lastUsage) {
             lastKnownUsage = lastUsage;
             yield {
@@ -286,7 +294,7 @@ async function* createEventStream(
     // aiduCAT: final guaranteed refresh — run-state keeps whichever usage
     // snapshot arrives last before/carrying the terminal event.
     if (codexHomeDir) {
-      const lastUsage = await extractCodexLastUsage(codexHomeDir);
+      const lastUsage = await extractCodexLastUsage(codexHomeDir, threadId);
       if (lastUsage) {
         lastKnownUsage = lastUsage;
         yield {

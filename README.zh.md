@@ -107,22 +107,6 @@ aiduCAT kill <id|#>
 - 快速连发的消息自动合并处理；运行中再来的消息进入队列，等这轮跑完作为下一轮输入
 - 会话历史本地持久化，`/resume` 恢复
 
-## 致谢
-
-- **上游**：[zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)（npm 包 `lark-channel-bridge` v0.7.1）
-- **样式灵感**：[monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) —— 泡波样式（Bubble Wave）设计语言起源
-- **定制**：aidu
-
----
-
-<p align="center">
-  <sub>用 💕 制作 by aidu</sub>
-</p>
-
-## License
-
-[MIT](./LICENSE)
-
 ## 运行时说明
 
 ### 按 profile 的服务与 CLI
@@ -191,3 +175,19 @@ pnpm test
 pnpm typecheck
 pnpm build
 ```
+
+## 致谢
+
+- **上游**：[zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)（npm 包 `lark-channel-bridge` v0.7.1）
+- **样式灵感**：[monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) —— 泡波样式（Bubble Wave）设计语言起源
+- **定制**：aidu
+
+---
+
+<p align="center">
+  <sub>用 💕 制作 by aidu</sub>
+</p>
+
+## License
+
+[MIT](./LICENSE)

@@ -107,22 +107,6 @@ One card, three parts:
 - Messages sent in quick succession merge into one batch; messages sent during a run queue up as the next turn
 - Session history persists locally; `/resume` restores it
 
-## Credits
-
-- **Upstream**: [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge) (npm package `lark-channel-bridge` v0.7.1)
-- **Style inspiration**: [monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) — origin of the Bubble Wave design language
-- **Customization**: aidu
-
----
-
-<p align="center">
-  <sub>Made with 💕 by aidu</sub>
-</p>
-
-## License
-
-[MIT](./LICENSE)
-
 ## Runtime notes
 
 ### Per-profile service and CLI
@@ -191,3 +175,19 @@ pnpm test
 pnpm typecheck
 pnpm build
 ```
+
+## Credits
+
+- **Upstream**: [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge) (npm package `lark-channel-bridge` v0.7.1)
+- **Style inspiration**: [monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) — origin of the Bubble Wave design language
+- **Customization**: aidu
+
+---
+
+<p align="center">
+  <sub>Made with 💕 by aidu</sub>
+</p>
+
+## License
+
+[MIT](./LICENSE)

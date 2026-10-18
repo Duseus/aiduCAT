@@ -9,36 +9,53 @@ export interface CodexLastUsage {
 }
 
 /**
- * Fast, non-blocking tail read of the newest session rollout file.
- * Only reads the last 16KB of the file to extract `last_token_usage`.
- * Never reads the whole file into memory.
+ * Fast, non-blocking tail read of this run's session rollout file.
+ * `threadId` (from the thread.started event) pins the exact rollout
+ * `rollout-*-<threadId>.jsonl` so concurrent group/p2p runs can never
+ * steal each other's usage snapshot. Only the last 64KB of the file is
+ * read — never the whole file. No threadId = legacy newest-file pick.
  */
-export async function extractCodexLastUsage(codexHome: string): Promise<CodexLastUsage | undefined> {
+export async function extractCodexLastUsage(
+  codexHome: string,
+  threadId?: string,
+): Promise<CodexLastUsage | undefined> {
   try {
     const sessionsRoot = join(codexHome, 'sessions');
-    // Fast path: find today's directory YYYY/MM/DD
-    const now = new Date();
-    const yyyy = String(now.getUTCFullYear());
-    const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const dd = String(now.getUTCDate()).padStart(2, '0');
-    const todayDir = join(sessionsRoot, yyyy, mm, dd);
+    // Scan the last 3 UTC days: Codex files a rollout under the date the
+    // session STARTED, so after UTC midnight a still-live thread keeps
+    // appending to yesterday's directory while "today" has no files at all.
+    const dirs: string[] = [];
+    for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
+      const day = new Date(Date.now() - dayOffset * 86_400_000);
+      const yyyy = String(day.getUTCFullYear());
+      const mm = String(day.getUTCMonth() + 1).padStart(2, '0');
+      const dd = String(day.getUTCDate()).padStart(2, '0');
+      dirs.push(join(sessionsRoot, yyyy, mm, dd));
+    }
 
-    let targetDir = todayDir;
-    let files: string[] = [];
-    try {
-      files = readdirSync(todayDir).filter((f) => f.endsWith('.jsonl'));
-    } catch {
-      // Fallback: search sessionsRoot if today's dir does not exist
-      return undefined;
+    let files: { name: string; dir: string }[] = [];
+    for (const dir of dirs) {
+      try {
+        for (const f of readdirSync(dir).filter((f) => f.endsWith('.jsonl'))) {
+          files.push({ name: f, dir });
+        }
+      } catch {
+        // Missing day directory (early hours after UTC midnight) — keep going.
+      }
+    }
+    // aiduCAT: pin this run's own rollout — with group+p2p running at once,
+    // mtime picks whichever session flushed last and reads a stranger's tail.
+    if (threadId) {
+      files = files.filter((f) => f.name.includes(threadId));
     }
     if (files.length === 0) return undefined;
 
-    // Pick newest file in today's directory by mtime
-    let newestFile = join(todayDir, files[0]!);
+    // Pick newest file by mtime
+    let newestFile = join(files[0]!.dir, files[0]!.name);
     let maxMtime = 0;
     for (const f of files) {
       try {
-        const full = join(todayDir, f);
+        const full = join(f.dir, f.name);
         const m = statSync(full).mtimeMs;
         if (m > maxMtime) {
           maxMtime = m;
@@ -47,10 +64,11 @@ export async function extractCodexLastUsage(codexHome: string): Promise<CodexLas
       } catch {}
     }
 
-    // Read only the last 16KB of the file
+    // Read only the last 64KB of the file (long tool outputs can push the
+    // usage record out of a 16KB window)
     const stats = statSync(newestFile);
     const fd = openSync(newestFile, 'r');
-    const bufferSize = Math.min(stats.size, 16384);
+    const bufferSize = Math.min(stats.size, 65536);
     const buffer = Buffer.alloc(bufferSize);
     const position = Math.max(0, stats.size - bufferSize);
 
