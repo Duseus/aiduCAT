@@ -6,9 +6,9 @@
 
 > **aiduCAT = Claude-code Agent Texting ——一只住在飞书里的猫，随时替你敲代码**
 >
-> 配色遵循 aidu VI：深蓝 `#1F4E79` · 暮灰 `#525252` · 墨黑 `#000000` · 宣白 `#FFFFFF`。
+> **提问在上方，过程收进一只小面板，结果由面板颜色说话。**
 >
-> **答案在上，过程收进一只小面板，结果看边框颜色。**
+> 给 Claude Code / Codex CLI 穿上泡波流的飞书卡片：宣白纸面上灌一道深蓝流光，一只猫，零噪音。
 
 [![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)

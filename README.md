@@ -6,9 +6,9 @@
 
 > **aiduCAT = Claude-code Agent Texting — a cat living inside Feishu, typing code for you**
 >
-> Palette follows the aidu VI: deep blue `#1F4E79` · dusk gray `#525252` · ink black `#000000` · paper white `#FFFFFF`.
+> **Ask on top, process folded into one small panel, the result told by the panel's color.**
 >
-> **Answer on top, process folded into one small panel, result shown by border color.**
+> Dress your Claude Code / Codex CLI in a Bubble-Wave Feishu card: deep-blue veins on paper white, one cat, zero noise.
 
 [![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
