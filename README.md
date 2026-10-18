@@ -1,14 +1,14 @@
-# aiduCAT☤爱嘟可爱糖 — Claude-code Agent Texting on Feishu
+# aiduCAT☤爱嘟可爱糖 — Claude-code Agent Texting · 飞书泡波流式卡
 
 <p align="center">
   <img src="docs/images/aidububble-banner.webp" alt="aiduCAT 爱嘟可爱糖 · 泡波横幅（aidu 家族同款）" width="100%">
 </p>
 
-> **aiduCAT = Claude-code Agent Texting — a cat living inside Feishu, typing code for you**
+> **aiduCAT = Claude-code Agent Texting ——一只住在飞书里的猫，随时替你敲代码**
 >
-> **Ask on top, process folded into one small panel, the result told by the panel's color.**
+> **提问在上方，过程收进一只小面板，结果由面板颜色说话。**
 >
-> Dress your Claude Code / Codex CLI in a Bubble-Wave Feishu card: deep-blue veins on paper white, one cat, zero noise.
+> 给 Claude Code / Codex CLI 穿上泡波流的飞书卡片：宣白纸面上灌一道深蓝流光，一只猫，零噪音。
 
 [![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -16,30 +16,30 @@
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
 [![aiduCAT](https://img.shields.io/badge/aiduCAT-Claude--code_Agent_Texting-1f4e79.svg)](https://github.com/monkey2jack/aiduCAT)
 
-**[📖 中文](./README.zh.md)** | **English**
+**中文** | **[📖 English](./README.en.md)**
 
 <!-- distribution-policy: github-source-only -->
-> **Distribution note**: aiduCAT is not published to npm / PyPI. Run it from this repository source (`npm install && npm run build`). The local `bin` entry is for development and testing only.
+> **分发说明**：aiduCAT 不发 npm / PyPI 安装包，直接从本仓库源码运行（`npm install && npm run build`）。源码中的 `.bin` 入口仅用于本地开发与测试。
 
 ---
 
-## What is aiduCAT?
+## aiduCAT 是什么？
 
-**aiduCAT** = **Claude-code Agent Texting** — aiduCAT dresses **Claude Code / Codex CLI** as a Feishu cat — streaming your local coding agent's thinking, tool calls, and final answer into one Feishu card styled after the [aiduPOP](https://github.com/monkey2jack/aiduPOP) Bubble Wave look.
+**aiduCAT☤爱嘟可爱糖**，全称 **Claude-code Agent Texting**（Claude 代码代理短信/消息化），是给 **Claude Code / Codex CLI** 装上的一只飞书猫 —— 把本地编程 agent 的思考、工具调用和最终答案，实时装进一张仿 [aiduPOP](https://github.com/monkey2jack/aiduPOP) 泡波样式的飞书流式卡片。
 
-aiduCAT originates from and credits the upstream [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge) (npm package `lark-channel-bridge`), an MIT-licensed project. On top of that code, aiduCAT adds a complete **Bubble Wave transformation**:
+aiduCAT 起源并致敬上游 [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)（npm 包 `lark-channel-bridge`），在MIT 协议的代码基础之上，做了一套完整的**泡波化改造**：
 
-| Feature | Description |
-|---------|-------------|
-| 🫧 **Single Bubble panel** | The answer streams on top; thinking and all tool calls fold into one collapsible panel (aiduPOP layout) |
-| ☤ **Two-line counter header** | Collapsed, the header reads `🌊 thinking · 🫧 tools · ✨ elapsed` over `model · effort · 25k/1M (2%)` — no caption text |
-| 👩🏻‍💻 **Per-tool emoji** | Bash👩🏻‍💻 Read👩🏻‍🏫 Edit👩🏻‍🔧 Write👩🏻‍🎨 Grep🕵🏻 Glob🥷🏻 Web👩🏻‍🚀 Agent👯🏻 — one face per tool family |
-| 🚦 **Border = status** | done green / stopped yellow / error red — read the result at a glance, no trailing notes |
-| 🎹 **Typing reaction** | A Typing emoji lands on your message the moment it arrives, and vanishes as soon as real work starts |
-| 🗣 **`/model` free switching** | Pass through any gateway combo id (e.g. `Gemini-3.8-Flash`) with no whitelist clamping |
-| 📝 **Copywriting menu** | Every visible string is cataloged in a wiki table for à-la-carte customization |
+| 特性 | 说明 |
+|------|------|
+| 🫧 **单面板泡波样式** | 答案流式显示在上方；思考与全部工具调用收进一只折叠面板（aiduPOP 布局） |
+| ☤ **两行计数头** | 收起后上排 `🌊 思考段 · 🫧 工具数 · ✨ 时长`，下排 `模型 · 强度 · 25k/1M (2%)`，无中文废话 |
+| 👩🏻‍💻 **工具专属 emoji** | Bash👩🏻‍💻 Read👩🏻‍🏫 Edit👩🏻‍🔧 Write👩🏻‍🎨 Grep🕵🏻 Glob🥷🏻 Web👩🏻‍🚀 Agent👯🏻 —— 每类工具一个脸 |
+| 🚦 **边框即状态** | 完成绿 / 停止黄 / 出错红 —— 一眼看清结果，无结尾注脚 |
+| 🎹 **打字机反应** | 消息一落就打上敲键盘表情；真正开跑立刻消失，干净利落 |
+| 🗣 **`/model` 自由切模型** | 免费 pass-through 任意 gateway combo id（如 `Gemini-3.8-Flash`），不做白名单收口 |
+| 📝 **文案点菜单** | 全部展示文案列成 wiki 表格，按行点菜式定制 |
 
-## Quick start
+## 快速开始
 
 ```bash
 git clone https://github.com/monkey2jack/aiduCAT.git
@@ -47,114 +47,114 @@ cd aiduCAT
 npm install
 npm run build
 
-# Run in foreground (first run opens a QR binding wizard)
+# 前台运行（首次启动扫码绑定 PersonalAgent 应用）
 npm run dev -- run
 ```
 
-Requires Node.js >= 20.12.0 and one local agent installed and logged in: [Claude Code](https://docs.anthropic.com/en/docs/claude-code/quickstart) or [Codex CLI](https://developers.openai.com/codex/cli).
+需要 Node.js >= 20.12.0，且本机已装好 [Claude Code](https://docs.anthropic.com/en/docs/claude-code/quickstart) 或 [Codex CLI](https://developers.openai.com/codex/cli)。
 
-The first run: renders a binding QR code → you scan and pick/create a PersonalAgent app → config is written to `~/.lark-channel/config.json`.
+首次运行会做三件事：渲染绑定二维码 → 让你扫码并选择/创建 PersonalAgent 应用 → 把配置写入 `~/.lark-channel/config.json`。
 
-## Commands
+## 常用命令
 
-### Slash commands inside Feishu / Lark
+### 飞书内斜杠命令
 
-| Command | Effect |
+| 命令 | 效果 |
 |---|---|
-| `/help` | List all commands |
-| `/model` | Show / switch the model (any gateway combo id; `/model default` restores) |
-| `/new` | Interrupt the current run and start a fresh session |
-| `/stop` | Stop the current running task |
-| `/timeout [N\|off]` | Set the session idle watchdog |
-| `/cd <path>` | Switch the working directory |
-| `/ws` | Manage named workspaces |
-| `/resume` | Resume the same session history |
-| `/status` | Show run state |
-| `/config` | Adjust presentation preferences and access policy |
+| `/help` | 列出所有命令 |
+| `/model` | 查看 / 切换模型（支持任意 gateway combo id；`/model default` 还原默认） |
+| `/new` | 中断当前任务并开新会话 |
+| `/stop` | 停止当前正在运行的任务 |
+| `/timeout [N\|off]` | 设置会话空闲超时 |
+| `/cd <path>` | 切换工作目录 |
+| `/ws` | 管理命名工作区 |
+| `/resume` | 恢复同会话历史 |
+| `/status` | 显示运行状态 |
+| `/config` | 调整展示偏好与访问策略 |
 
-### Host CLI
+### 宿主机 CLI
 
 ```bash
-aiduCAT run      # foreground
-aiduCAT start    # background daemon (launchd/systemd)
+aiduCAT run      # 前台运行
+aiduCAT start    # 后台守护进程（launchd/systemd）
 aiduCAT status
 aiduCAT stop
 aiduCAT ps
 aiduCAT kill <id|#>
 ```
 
-## Card anatomy
+## 卡片长相
 
-One card, three parts:
+一张卡，三段式：
 
 ```
-[final answer, streamed]
+[模型长答案，流式打字]
 
-🫧Poping…                                    ← live status line (above panel)
+🫧Poping…                                    ← 实时状态行（面板上方）
 ┌─────────────────────────────────────┐
-│  2 · 🫧 4 · ✨ 38s                  │  ← header line 1: counters
-│ Gemini-3.8-Flash · max · 25k/1M (2%) │  ← header line 2: model · effort · context
+│ 🌊 2 · 🫧 4 · ✨ 38s                  │  ← 标题第一行：计数
+│ Gemini-3.8-Flash · max · 25k/1M (2%) │  ← 标题第二行：模型 · 强度 · 上下文
 └─────────────────────────────────────┘
 ```
 
-- **While running**: a live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…) rides on its own line above the panel; the two-line header shows thinking segments / tool count / elapsed time on top, model · effort · live context usage (`25k/1M (2%)`, refreshed per API call) below
-- **Expanded panel**: thinking text is prefixed 🌊; each tool line carries its own emoji (👩🏻‍💻Bash 👩🏻‍🏫Read 👩🏻‍🔧Edit 👩🏻‍🎨Write 🕵🏻Grep 🥷🏻Glob 👩🏻‍🚀Web 👯🏻agent 🤵🏻other)
-- **On completion**: the status word disappears; the **panel border carries the result** — done green / stopped yellow / error red
+- **运行中**：实时状态词（🌊Waving… / 🫧Poping… / ☤aiduCATing…）单独一行浮在面板上方；两行标题上排是思考段数 / 工具数 / 已用时长，下排是模型 · 推理强度 · 实时上下文占用（`25k/1M (2%)`，每次 API 调用刷新）
+- **展开面板**：🌊 开头的是思考文本；每个工具前是它的专属 emoji（👩🏻‍💻Bash 👩🏻‍🏫Read 👩🏻‍🔧Edit 👩🏻‍🎨Write 🕵🏻Grep 🥷🏻Glob 👩🏻‍🚀网络 👯🏻子agent 🤵🏻其他）
+- **结束**：状态词消失，只剩计数头；**边框颜色说结果** —— 完成绿 / 停止黄 / 出错红
 
-## Sessions and queueing
+## 会话与队列
 
-- Each DM / group / topic / doc-comment thread keeps its own session
-- Messages sent in quick succession merge into one batch; messages sent during a run queue up as the next turn
-- Session history persists locally; `/resume` restores it
+- 每个私聊 / 群 / 话题 / 文档评论独立会话
+- 快速连发的消息自动合并处理；运行中再来的消息进入队列，等这轮跑完作为下一轮输入
+- 会话历史本地持久化，`/resume` 恢复
 
-## Runtime notes
+## 运行时说明
 
-### Per-profile service and CLI
+### 按 profile 的服务与 CLI
 
-The daemon installs one **per-profile service** per PersonalAgent app: macOS launchd `ai.lark-channel-bridge.bot.<profile>`, Linux systemd `lark-channel-bridge.bot.<profile>.service`, Windows Task Scheduler `LarkChannelBridge.Bot.<profile>` via a `.cmd` wrapper. Host CLI reference:
+守护进程为每个 PersonalAgent 应用安装一个**按 profile 的服务（per-profile service）**：macOS launchd `ai.lark-channel-bridge.bot.<profile>`、Linux systemd `lark-channel-bridge.bot.<profile>.service`、Windows 计划任务 `LarkChannelBridge.Bot.<profile>`（经 `.cmd` 包装启动）。宿主机 CLI 参考：
 
 ```bash
 aiduCAT profile create claude --agent claude
 aiduCAT profile create codex --agent codex
 aiduCAT profile list
 aiduCAT profile use <name>
-aiduCAT profile remove <name>            # archive local state
+aiduCAT profile remove <name>            # 归档本地状态
 aiduCAT profile remove <name> --purge --yes
 aiduCAT profile export <name> [--output ./profile.json] [--force]
 aiduCAT profile export <name> --include-secrets --yes
 ```
 
-### Access control in chat
+### 会话内访问控制
 
-DMs do not require an @ mention; groups and topics require `@bot` by default. Manage access from chat itself:
+私聊无需 @；群与话题默认需要 `@bot`。直接在聊天里管理访问：
 
 ```text
-/invite user @name     allow a user in DMs
-/invite admin @name    add an access-control admin
-/invite group          allow a group
-/invite all group      allow all groups
+/invite user @name     允许某用户私聊
+/invite admin @name    添加访问控制管理员
+/invite group          允许某个群
+/invite all group      允许所有群
 /remove user @name
 /remove admin @name
 /remove group
 ```
 
-### Cloud-doc comments
+### 云文档评论
 
-Cloud-doc comments are document-scoped: a comment run follows the document's own permissions rather than a separate access gate. Mention the bot in a supported doc's comment to run.
+云文档评论按文档权限生效（document-scoped）：评论触发的运行跟随文档本身的权限，而不是单独的访问闸门。在受支持的文档评论中 @ 机器人即可运行。
 
-### lark-cli identity policy
+### lark-cli 身份策略
 
-Each profile uses a profile-local lark-cli directory at `~/.lark-channel/profiles/<profile>/lark-cli`. The agent process receives `LARKSUITE_CLI_CONFIG_DIR` for that directory, so personal authorization in one profile is never shared with another. The default policy is `bot-only`; `/config` can switch an authorized user to `user-default`. `/status` shows the summary (`lark-cli: app` / `lark-cli: user-ready`).
+每个 profile 使用独立的**当前 profile 的 lark-cli 目录**：`~/.lark-channel/profiles/<profile>/lark-cli`。agent 进程会拿到指向该目录的 `LARKSUITE_CLI_CONFIG_DIR`，因此一个 profile 里的个人授权不会被另一个 profile 共享。默认策略 `bot-only`；`/config` 可把已授权用户切到 `user-default`。`/status` 显示摘要（`lark-cli: app` / `lark-cli: user-ready`）。
 
-This **lark-cli identity policy** is per profile, not global.
+这套 **lark-cli 身份策略**是按 profile 隔离的，不是全局的。
 
-### Working directories
+### 工作目录与工作区
 
-Each profile may define a default workspace through `workspaces.default`. `/cd` switches the current directory and resets the session; `/ws` saves and reuses named workspaces (`/ws list`, `/ws save <name>`, `/ws use <name>`, `/ws remove <name>`). The directory is the agent's current working directory, not a filesystem sandbox — file access still depends on the local agent process and its permission mode.
+每个 profile 可通过 `workspaces.default` 定义默认工作目录。`/cd` 切换当前目录并重置会话；`/ws` 保存并复用命名工作区（`/ws list`、`/ws save <name>`、`/ws use <name>`、`/ws remove <name>`）。工作目录只是 agent 的当前目录，不是文件系统沙箱 —— 实际文件访问仍取决于本地 agent 进程及其权限模式。
 
-### Permissions
+### 权限（permissions）
 
-Access is controlled by the canonical `"permissions"` block:
+访问由标准的 `"permissions"` 块控制：
 
 ```json
 {
@@ -165,9 +165,9 @@ Access is controlled by the canonical `"permissions"` block:
 }
 ```
 
-Set either value to `workspace` or `read-only` to tighten a profile. The legacy `sandbox` config keys are no longer read.
+把任一值设为 `workspace` 或 `read-only` 可收紧 profile。旧版 `sandbox` 配置键已不再读取（legacy `sandbox` keys are ignored）。
 
-### Development
+### 开发
 
 ```bash
 pnpm install
@@ -176,16 +176,16 @@ pnpm typecheck
 pnpm build
 ```
 
-## Credits
+## 致谢
 
-- **Upstream**: [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge) (npm package `lark-channel-bridge` v0.7.1)
-- **Style inspiration**: [monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) — origin of the Bubble Wave design language
-- **Customization**: aidu
+- **上游**：[zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)（npm 包 `lark-channel-bridge` v0.7.1）
+- **样式灵感**：[monkey2jack/aiduPOP](https://github.com/monkey2jack/aiduPOP) —— 泡波样式（Bubble Wave）设计语言起源
+- **定制**：aidu
 
 ---
 
 <p align="center">
-  <sub>Made with 💕 by aidu</sub>
+  <sub>用 💕 制作 by aidu</sub>
 </p>
 
 ## License
