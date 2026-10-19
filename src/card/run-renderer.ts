@@ -300,29 +300,28 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
 }
 
 /**
- * aiduPOP header (单行展示):
- *   🌊 thinking-n · 🫧 tool-n · ✨ elapsed · model · effort · 23k/1M (2%)
- * Each piece only appears when it has a value (counts always show); separators are the aiduPOP `·`.
- * Elapsed keeps ticking across card updates because renderCard is re-run on
- * every streaming update with the fixed `options.startedAt`.
+ * Hermes 风格 unified panel 标题:
+ *   🧠  N 轮 · 🛠️  N 个工具 · ⏳  N.N 秒
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
   const parts: string[] = [];
 
-  // counts always show, even at zero — the header keeps a stable shape
-  parts.push(`🌊 ${state.reasoning.segments}`);
-  const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  parts.push(`🫧 ${toolCount}`);
-  if (options.startedAt) {
-    const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
-    const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
-    parts.push(`✨ ${label}`);
-  }
+  const rounds = Math.max(1, state.reasoning.segments);
+  parts.push(`🧠  ${rounds} 轮`);
 
-  if (options.model) parts.push(options.model);
-  if (options.effort) parts.push(options.effort);
-  const ctx = contextUsageText(state, options);
-  if (ctx) parts.push(ctx);
+  const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
+  parts.push(`🛠️  ${toolCount} 个工具`);
+
+  let elapsedSec = 0.0;
+  if (options.startedAt) {
+    elapsedSec = Math.max(0, (Date.now() - options.startedAt) / 1000);
+  }
+  const elapsedStr =
+    elapsedSec >= 60
+      ? `${Math.floor(elapsedSec / 60)} 分 ${Math.floor(elapsedSec % 60)} 秒`
+      : `${elapsedSec.toFixed(1)} 秒`;
+  parts.push(`⏳  ${elapsedStr}`);
+
   if (state.terminal === 'error') parts.push('❌');
 
   return parts.join(' · ');

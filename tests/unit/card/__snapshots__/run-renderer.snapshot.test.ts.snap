@@ -32,7 +32,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 3",
+            "content": "🧠  1 轮 · 🛠️  3 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -89,7 +89,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 3",
+            "content": "🧠  1 轮 · 🛠️  3 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -156,7 +156,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 1 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -215,7 +215,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 1 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -278,7 +278,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -341,7 +341,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 0 · ❌",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒 · ❌",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -408,7 +408,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -475,7 +475,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -542,7 +542,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 0",
+            "content": "🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -633,7 +633,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 1",
+            "content": "🧠  1 轮 · 🛠️  1 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -688,7 +688,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 1",
+            "content": "🧠  1 轮 · 🛠️  1 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },
@@ -751,7 +751,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
           "icon_expanded_angle": -180,
           "icon_position": "right",
           "title": {
-            "content": "🌊 0 · 🫧 1",
+            "content": "🧠  1 轮 · 🛠️  1 个工具 · ⏳  0.0 秒",
             "tag": "markdown",
             "text_size": "notation",
           },

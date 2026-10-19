@@ -21,8 +21,8 @@ function stateWithUsage(overrides: Partial<RunState> = {}): RunState {
   return { ...state, ...overrides };
 }
 
-describe('single-line panel header', () => {
-  it('carries thinking · tools · elapsed · model · effort · ctx in a single line', () => {
+describe('Hermes unified panel header', () => {
+  it('carries 🧠 N 轮 · 🛠️ N 个工具 · ⏳ N.N 秒 in the panel header', () => {
     const state = stateWithUsage();
     const card = renderCard(state, {
       model: 'Gemini-3.8-Flash',
@@ -31,70 +31,30 @@ describe('single-line panel header', () => {
       startedAt: Date.now() - 5_000,
     });
     const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0 · ✨ 5s · Gemini-3.8-Flash · max · 25k/1M (2%)');
+    expect(title).toBe('🧠  1 轮 · 🛠️  0 个工具 · ⏳  5.0 秒');
   });
 
-  it('omits ctx% when contextWindow unknown, omits effort when unset', () => {
+  it('renders default zero elapsed when startedAt unset', () => {
     const state = stateWithUsage();
     const card = renderCard(state, { model: 'SomeModel' });
     const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0 · SomeModel · 25k/1M (3%)');
+    expect(title).toBe('🧠  1 轮 · 🛠️  0 个工具 · ⏳  0.0 秒');
   });
 
-  it('omits the whole ctx piece until usage arrives', () => {
+  it('renders elapsed in seconds when under a minute', () => {
     const card = renderCard(initialState, {
       model: 'GLM-5.3-Flash',
       effort: 'high',
       contextWindow: 1000000,
+      startedAt: Date.now() - 1500,
     });
-    expect(panelTitle(card)).toBe('🌊 0 · 🫧 0 · GLM-5.3-Flash · high');
-  });
-
-  it('formats used/total with k/M units and percentage', () => {
-    let state = reduce(initialState, {
-      type: 'usage',
-      inputTokens: 100_000,
-      outputTokens: 100,
-      cachedInputTokens: 400_000,
-      cacheCreationInputTokens: 0,
-    });
-    const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
-    expect(panelTitle(card)).toContain('500.1k/1M (50%)');
-  });
-
-  it('formats accumulated usage without claiming an impossible 100% window fill', () => {
-    let state = reduce(initialState, {
-      type: 'usage',
-      inputTokens: 900_000,
-      outputTokens: 200_000,
-    });
-    const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
-    expect(panelTitle(card)).toContain('1.1M/1M (100%)');
-  });
-
-  it('ignores the cumulative result-event usage (would show inflated 100%)', () => {
-    let state = reduce(initialState, {
-      type: 'usage',
-      inputTokens: 25_000,
-      outputTokens: 500,
-      cachedInputTokens: 0,
-    });
-    // Terminal result carries the whole-turn cumulative total — must not
-    // overwrite the per-message snapshot used for the readout.
-    state = reduce(state, {
-      type: 'usage',
-      inputTokens: 900_000,
-      outputTokens: 200_000,
-      cumulative: true,
-    });
-    const card = renderCard(state, { model: 'M', contextWindow: 1_000_000 });
-    expect(panelTitle(card)).toContain('25.5k/1M (3%)');
+    expect(panelTitle(card)).toMatch(/⏳\s+1\.[456] 秒/);
   });
 
   it('zero thinking/tool counts still render in the line', () => {
     const card = renderCard(initialState, { model: 'M', startedAt: Date.now() - 1000 });
     const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0 · ✨ 1s · M');
+    expect(title).toBe('🧠  1 轮 · 🛠️  0 个工具 · ⏳  1.0 秒');
   });
 
   it('thinking and tool counts land in the line', () => {
@@ -107,8 +67,8 @@ describe('single-line panel header', () => {
       startedAt: Date.now() - 2000,
     });
     const title = panelTitle(card);
-    expect(title).toContain('🌊 1');
-    expect(title).toContain('🫧 1');
-    expect(title).toContain('✨');
+    expect(title).toContain('🧠  1 轮');
+    expect(title).toContain('🛠️  1 个工具');
+    expect(title).toContain('⏳  2.0 秒');
   });
 });
