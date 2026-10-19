@@ -95,7 +95,12 @@ export class ClaudeAdapter implements AgentAdapter {
 
     const child = spawnProcess(this.binary, args, {
       cwd: opts.cwd,
-      env: mergeProcessEnv(process.env, buildLarkChannelEnv(this.larkChannel)),
+      // f0.2: per-run provider overrides (envOverrides) layer last, on top of
+      // the Lark channel env — /model provider switches take effect per run.
+      env: mergeProcessEnv(process.env, {
+        ...buildLarkChannelEnv(this.larkChannel),
+        ...(opts.envOverrides ?? {}),
+      }),
       stdio: ['pipe', 'pipe', 'pipe'],
     }) as ClaudeChild;
 

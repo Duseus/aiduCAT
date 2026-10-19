@@ -145,8 +145,15 @@ export function reduce(state: RunState, evt: AgentEvent): RunState {
       };
     }
 
-    case 'final_text':
+    case 'final_text': {
+      // f0.2 clarify fix: the final answer frequently converges here (gateway
+      // runs emit final_text, not streamed text deltas) — parse the clarify
+      // marker out of it exactly like the text path, or the buttons never
+      // appear (2026-10-19 猴哥 clarify 测试失败根因).
+      const parsed = parseClarifyMarker(evt.content);
+      if (parsed) return { ...state, finalText: parsed.cleaned, clarify: parsed.clarify };
       return { ...state, finalText: evt.content };
+    }
 
     case 'usage':
       // aiduCAT: keep the latest per-message usage snapshot for the context

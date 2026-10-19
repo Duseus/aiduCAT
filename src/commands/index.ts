@@ -23,6 +23,13 @@ import {
 } from '../card/config-card';
 import { GROUP_MSG_SCOPE, hasGroupMsgScope } from '../bot/app-scope';
 import { fetchCombos, invalidateComboCache, resolveTenRouterConfig } from '../bot/tenrouter';
+import {
+  DEFAULT_PROVIDER,
+  DEFAULT_PROVIDER_VALUE,
+  fetchProviderModels,
+  normalizeProvider,
+  providerChoices,
+} from '../bot/model-providers';
 import { requestScopeGrantLink } from '../bot/wizard';
 import {
   modelCancelledCard,
@@ -1387,26 +1394,40 @@ async function handleModel(args: string, ctx: CommandContext): Promise<void> {
   }
 }
 
-/** aiduCAT f0.1: interactive /model card (10router combos + effort). */
+/** aiduCAT f0.1: interactive /model card (10router combos + effort). f0.2: + provider dropdown. */
 async function showModelCard(ctx: CommandContext): Promise<void> {
   const tr = await resolveTenRouterConfig(ctx.controls.cfg);
   const currentModel = ctx.controls.cfg.preferences?.model;
   const currentEffort = ctx.controls.cfg.preferences?.effort;
+  const providers = ctx.controls.profileConfig.modelProviders ?? {};
+  const currentProvider = normalizeProvider(providers, ctx.controls.cfg.preferences?.provider);
 
   let combos: Array<{ id: string; name: string }> = [];
+  let totalModels: number | undefined;
   let source: 'live' | 'cached' | 'unavailable' = 'unavailable';
-  if (tr) {
-    const catalog = await fetchCombos(tr);
-    combos = catalog.combos;
-    source = catalog.source;
+  if (currentProvider === DEFAULT_PROVIDER) {
+    if (tr) {
+      const catalog = await fetchCombos(tr);
+      combos = catalog.combos;
+      source = catalog.source;
+    }
+  } else {
+    const cat = await fetchProviderModels(providers, currentProvider, async () => {
+      const c = tr ? await fetchCombos(tr) : { combos: [], source: 'unavailable' as const };
+      return { combos: c.combos, source: c.source };
+    });
+    combos = cat.models.map((name) => ({ id: name, name }));
+    source = cat.source;
   }
 
+  const providerChoicesList = providerChoices(providers, ctx.controls.profileConfig.defaultProviderName);
   const card = modelCard({
     combos,
     currentModel,
     currentEffort,
     source,
     agentKind: ctx.controls.profileConfig.agentKind,
+    ...(providerChoicesList.length > 1 ? { providers: providerChoicesList, currentProvider } : {}),
   });
   if (ctx.fromCardAction) await recallMessage(ctx, ctx.msg.messageId);
   await sendManagedCard(ctx.channel, ctx.msg.chatId, card, commandReplyOptions(ctx));
@@ -1414,21 +1435,44 @@ async function showModelCard(ctx: CommandContext): Promise<void> {
 
 async function submitModelCard(ctx: CommandContext): Promise<void> {
   const fv = ctx.formValue ?? {};
-  // Re-fetch combos so the submitted combo can be validated against the live
-  // catalog (a card left open across a combo deletion shouldn't resurrect a
-  // dead name). Falls back to accepting the submitted value when 10router is
-  // unreachable — the user's explicit click wins over a transient outage.
-  const tr = await resolveTenRouterConfig(ctx.controls.cfg);
+  const cfg = ctx.controls.cfg;
+  const providers = ctx.controls.profileConfig.modelProviders ?? {};
+  const submittedProvider = normalizeProvider(providers, String(fv.provider ?? '') || undefined);
+
+  // Re-fetch the model catalog so the submitted combo can be validated against
+  // the live list (a card left open across a combo deletion shouldn't
+  // resurrect a dead name). Falls back to accepting the submitted value when
+  // the provider is unreachable — the user's explicit click wins over a
+  // transient outage.
   let combos: Array<{ name: string }> = [];
-  if (tr) {
-    const catalog = await fetchCombos(tr);
-    combos = catalog.combos;
+  if (submittedProvider === DEFAULT_PROVIDER) {
+    const tr = await resolveTenRouterConfig(cfg);
+    if (tr) {
+      const catalog = await fetchCombos(tr);
+      combos = catalog.combos;
+    }
+  } else {
+    const tr = await resolveTenRouterConfig(cfg);
+    const cat = await fetchProviderModels(providers, submittedProvider, async () => {
+      const c = tr ? await fetchCombos(tr) : { combos: [], source: 'unavailable' as const };
+      return { combos: c.combos, source: c.source };
+    });
+    combos = cat.models.map((name) => ({ name }));
   }
-  const parsed = parseModelCardSubmit(fv, combos);
-  const currentModel = ctx.controls.cfg.preferences?.model;
-  const currentEffort = ctx.controls.cfg.preferences?.effort;
+  const parsed = parseModelCardSubmit(
+    fv,
+    combos,
+    providerChoices(providers, ctx.controls.profileConfig.defaultProviderName).map((p) => p.id),
+  );
+  // Map the dropdown sentinel back to the default id before persisting.
+  if (parsed.provider === DEFAULT_PROVIDER_VALUE) parsed.provider = DEFAULT_PROVIDER;
+  const currentModel = cfg.preferences?.model;
+  const currentEffort = cfg.preferences?.effort;
   const nextModel = parsed.model ?? currentModel;
   const nextEffort = parsed.effort ?? currentEffort;
+  // Provider: the card's provider select when present, else keep current.
+  const nextProvider =
+    parsed.provider ?? normalizeProvider(providers, cfg.preferences?.provider);
 
   if (!parsed.model && !parsed.effort) {
     // Both selects empty — the "pick both" rule wasn't satisfied. Re-prompt.
@@ -1437,15 +1481,16 @@ async function submitModelCard(ctx: CommandContext): Promise<void> {
   }
 
   const preferences: AppPreferences = {
-    ...(ctx.controls.cfg.preferences ?? {}),
+    ...(cfg.preferences ?? {}),
     model: nextModel,
     effort: nextEffort,
+    provider: nextProvider === DEFAULT_PROVIDER ? undefined : nextProvider,
   };
   try {
     await configOps.savePreferencesConfig(
       ctx.controls,
       preferences,
-      getRequireMentionInGroup(ctx.controls.cfg),
+      getRequireMentionInGroup(cfg),
       ctx.controls.profileConfig.larkCli.identityPreset,
       ctx.controls.profileConfig.mode,
     );
@@ -1455,7 +1500,12 @@ async function submitModelCard(ctx: CommandContext): Promise<void> {
     return;
   }
   invalidateComboCache();
-  log.info('command', 'model-set', { model: nextModel ?? 'default', effort: nextEffort ?? 'default', via: 'card' });
+  log.info('command', 'model-set', {
+    model: nextModel ?? 'default',
+    provider: nextProvider,
+    effort: nextEffort ?? 'default',
+    via: 'card',
+  });
 
   const formMsgId = ctx.msg.messageId;
   void (async () => {
@@ -1463,7 +1513,7 @@ async function submitModelCard(ctx: CommandContext): Promise<void> {
     await showResultCardInPlace(
       ctx,
       formMsgId,
-      modelSavedCard(nextModel ?? '跟随默认', nextEffort ?? '默认'),
+      modelSavedCard(nextModel ?? '跟随默认', nextEffort ?? '默认', nextProvider, ctx.controls.profileConfig.defaultProviderName),
     );
   })();
 }

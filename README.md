@@ -10,7 +10,7 @@
 >
 > 给 Claude Code / Codex CLI 穿上泡波流的飞书卡片：宣白纸面上灌一道深蓝流光，一只猫，零噪音。
 
-[![Version](https://img.shields.io/badge/version-f0.1-blue.svg)](https://github.com/monkey2jack/aiduCAT)
+[![Version](https://img.shields.io/badge/version-f0.2-blue.svg)](https://github.com/monkey2jack/aiduCAT)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20.12%2B-brightgreen.svg)](https://nodejs.org/)
 [![Claude Code](https://img.shields.io/badge/agent-Claude%20Code%20%7C%20Codex-orange.svg)](https://docs.anthropic.com/en/docs/claude-code/quickstart)
@@ -32,7 +32,9 @@ aiduCAT 起源并致敬上游 [zarazhangrui/lark-coding-agent-bridge](https://gi
 | 特性 | 说明 |
 |------|------|
 | 🫧 **单面板泡波样式** | 答案流式显示在上方；思考与全部工具调用收进一只折叠面板（aiduPOP 布局） |
-| ☤ **两行计数头** | 收起后上排 `🌊 思考段 · 🫧 工具数 · ✨ 时长`，下排 `模型 · 强度 · 25k/1M (2%)`，无中文废话 |
+| ☤ **单行计数头** | `模型 · 强度 · 25k/1M (2%) · 💭 n · 🛠️ n · ⏱️ ns · 状态词`——状态词（💭Reasoning/🛠️Tooling/☤aiduCATing）运行时殿后，结束消失，边框色说结果 |
+| 🏷 **模型 Logo** | 29 家厂商标识（OpenAI/Gemini/Claude/Grok/DeepSeek/Qwen/Kimi/豆包/智谱…）随 `/model` 切换自动跟随，显示在面板头 |
+| 🔌 **多 Provider** | /model 卡三级下拉（Provider→Model→Effort）一行排开；provider 密钥走环境变量链不入配置明文；切换下一轮即生效，无需重启；10router 系网关自动识别并只拉 curated combo |
 | 👩🏻‍💻 **工具专属 emoji** | Bash👩🏻‍💻 Read👩🏻‍🏫 Edit👩🏻‍🔧 Write👩🏻‍🎨 Grep🕵🏻 Glob🥷🏻 Web👩🏻‍🚀 Agent👯🏻 —— 每类工具一个脸 |
 | 🚦 **边框即状态** | 完成绿 / 停止黄 / 出错红 —— 一眼看清结果，无结尾注脚 |
 | 🎹 **打字机反应** | 消息一落就打上敲键盘表情；真正开跑立刻消失，干净利落 |
@@ -90,14 +92,13 @@ aiduCAT kill <id|#>
 ```
 [模型长答案，流式打字]
 
-🫧Poping…                                    ← 实时状态行（面板上方）
-┌─────────────────────────────────────┐
-│ 🌊 2 · 🫧 4 · ✨ 38s                  │  ← 标题第一行：计数
-│ Gemini-3.8-Flash · max · 25k/1M (2%) │  ← 标题第二行：模型 · 强度 · 上下文
+┌────────────────────────────────────────┐
+│ 💭Reasoning... · 💭 2 · 🛠️ 4 · ⏱️ 38s │  ← 标题首行：状态词+计数（结束状态词消失）
+│ Gemini-3.8-Flash · Max · 25k/1M (2%)   │  ← 标题次行：模型 · 强度 · 上下文
 └─────────────────────────────────────┘
 ```
 
-- **运行中**：实时状态词（🌊Waving… / 🫧Poping… / ☤aiduCATing…）单独一行浮在面板上方；两行标题上排是思考段数 / 工具数 / 已用时长，下排是模型 · 推理强度 · 实时上下文占用（`25k/1M (2%)`，每次 API 调用刷新）
+- **运行中**：实时状态词（💭Reasoning... / 🛠️Tooling... / ☤aiduCATing...）落在面板标题首行最左；上排后接思考段数 / 工具数 / 已用时长，下排是模型 · 推理强度 · 实时上下文占用（`25k/1M (2%)`，每次 API 调用刷新）
 - **展开面板**：🌊 开头的是思考文本；每个工具前是它的专属 emoji（👩🏻‍💻Bash 👩🏻‍🏫Read 👩🏻‍🔧Edit 👩🏻‍🎨Write 🕵🏻Grep 🥷🏻Glob 👩🏻‍🚀网络 👯🏻子agent 🤵🏻其他）
 - **结束**：状态词消失，只剩计数头；**边框颜色说结果** —— 完成绿 / 停止黄 / 出错红
 

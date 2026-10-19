@@ -44,6 +44,11 @@ export interface CardDispatchDeps {
 
 export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
   const value = deps.evt.action.value;
+  log.info('cardAction', 'entry', {
+    hasValue: Boolean(value),
+    cmd: typeof value === 'object' && value ? (value as Record<string, unknown>).cmd : undefined,
+    messageId: deps.evt.messageId,
+  });
   if (!value || typeof value !== 'object') return;
   const payload = value as Record<string, unknown>;
 
@@ -94,16 +99,39 @@ export async function handleCardAction(deps: CardDispatchDeps): Promise<void> {
     // the choice as a plain user message into the scope's pending queue so
     // the agent's session resumes with the answer.
     if (cmd === 'clarify.answer') {
-      const answer = parseClarifyAnswer(
-        typeof payload.arg === 'string' ? payload.arg : '',
-      );
-      if (!answer) {
+      // f0.2: dropdown 獨立 — the chosen option rides form_value.clarify_choice
+      // (select inside the clarify form); the question rides payload.arg.
+      const chosen =
+        typeof formValue?.clarify_choice === 'string' ? formValue.clarify_choice.trim() : '';
+      let question = '';
+      let answer = '';
+      if (chosen) {
+        // dropdown path: question rides payload.arg.q
+        try {
+          const parsed = JSON.parse(typeof payload.arg === 'string' ? payload.arg : '{}') as {
+            q?: unknown;
+          };
+          question = typeof parsed.q === 'string' ? parsed.q : '';
+        } catch {
+          /* keep empty question */
+        }
+        answer = chosen;
+      } else {
+        // legacy button path ({"q","a"} in arg)
+        const legacy = parseClarifyAnswer(typeof payload.arg === 'string' ? payload.arg : '');
+        if (legacy) {
+          question = legacy.question;
+          answer = legacy.answer;
+        }
+      }
+      if (!question || !answer) {
         log.warn('cardAction', 'clarify-unparseable', {
           raw: String(payload.arg ?? '').slice(0, 120),
+          chosen: chosen.slice(0, 80),
         });
         return;
       }
-      forwardToAgent(deps, { clarify: answer }, formValue, scope, threadId, mode);
+      forwardToAgent(deps, { clarify: { question, answer } }, formValue, scope, threadId, mode);
       return;
     }
 
@@ -235,6 +263,27 @@ function forwardToAgent(
   ) {
     const { question, answer } = clarify as { question: unknown; answer: unknown };
     if (typeof question === 'string' && typeof answer === 'string') {
+      // f0.2: receipt on the SAME card — swap the form for a chosen line so
+      // the question can't be answered twice. updateCard targets the message
+      // that carries the card (evt.messageId).
+      void (async () => {
+        try {
+          await deps.channel.updateCard(deps.evt.messageId, {
+            schema: '2.0',
+            config: {},
+            body: {
+              elements: [
+                { tag: 'markdown', content: `⁉️ **TBC**：${question}` },
+                { tag: 'markdown', content: `✅ **已选**：${answer}` },
+              ],
+            },
+          });
+        } catch (err) {
+          log.warn('cardAction', 'clarify-receipt-update-failed', {
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      })();
       forwardContent(deps, `[clarify] ${question} => ${answer}`, scope, threadId, mode);
       return;
     }

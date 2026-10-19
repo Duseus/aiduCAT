@@ -41,6 +41,8 @@ export async function buildEncryptedAccountConfig(
   tenant: TenantBrand,
   preferences?: AppPreferences,
   appPaths: Pick<AppPaths, 'secretsGetterScript'> & { rootDir?: string } = paths,
+  /** f0.2: top-level extension block (tenRouter) that must survive the rebuild. */
+  preserve?: Partial<Pick<AppConfig, 'tenRouter'>>,
 ): Promise<AppConfig> {
   const wrapperPath = await ensureSecretsGetterWrapper(appPaths);
   return {
@@ -66,6 +68,7 @@ export async function buildEncryptedAccountConfig(
       },
     },
     ...(preferences ? { preferences } : {}),
+    ...(preserve?.tenRouter ? { tenRouter: preserve.tenRouter } : {}),
   };
 }
 

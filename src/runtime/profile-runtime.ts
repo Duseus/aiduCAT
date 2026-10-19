@@ -689,6 +689,7 @@ async function maybeMigratePlaintextSecret(
         cfg.accounts.app.tenant,
         cfg.preferences,
         appPaths,
+        { tenRouter: cfg.tenRouter },
       );
       await setSecret(secretKeyForApp(cfg.accounts.app.id), s, appPaths);
       await saveConfig(next, configPath);
@@ -712,6 +713,7 @@ async function maybeMigratePlaintextSecret(
         cfg.accounts.app.tenant,
         cfg.preferences,
         appPaths,
+        { tenRouter: cfg.tenRouter },
       );
       await saveConfig(next, configPath);
       console.log('🔒 已把 secrets provider 切到 wrapper 形态');

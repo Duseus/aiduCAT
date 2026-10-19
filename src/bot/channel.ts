@@ -1225,6 +1225,7 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
             await cardCtrl.update(renderCard(filterForPrefs(state), cardRenderOptions));
           }
         },
+        // (diagnostics)
       );
       try {
         await awaitRenderAwareStream({
@@ -1243,6 +1244,17 @@ async function runAgentBatch(deps: RunBatchDeps): Promise<void> {
           },
         });
       } catch (err) {
+        if (controls.profileConfig.agentKind !== 'codex') {
+          // f0.2 diagnostics: dump the rejected final card so CardKit 200621
+          // (2026-10-19 跑完断卡) is attributable from logs alone.
+          try {
+            const spec = renderCard(filterForPrefs(latestState), cardRenderOptions);
+            const { appendFileSync } = await import('node:fs');
+            appendFileSync('/tmp/aiduCAT-rejected-card.json', JSON.stringify(spec) + '\n');
+          } catch {
+            /* dump must never mask the real error */
+          }
+        }
         if (controls.profileConfig.agentKind !== 'codex') throw err;
         log.fail('stream', err, { mode: replyMode, step: 'progress-stream' });
       }

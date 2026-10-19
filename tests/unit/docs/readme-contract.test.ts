@@ -94,9 +94,10 @@ describe('README runtime contract', () => {
 });
 
 async function readDocs(): Promise<string> {
-  const [en, zh] = await Promise.all([
+  // README.md is the Chinese default; English lives in README.en.md.
+  const [zh, en] = await Promise.all([
     readFile(new URL('../../../README.md', import.meta.url), 'utf8'),
-    readFile(new URL('../../../README.zh.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../README.en.md', import.meta.url), 'utf8'),
   ]);
-  return `${en}\n${zh}`;
+  return `${zh}\n${en}`;
 }

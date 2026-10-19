@@ -61,7 +61,9 @@ type StoredProfileConfig = Pick<
   | 'comments'
   | 'meeting'
   | 'larkCli'
->;
+> &
+  // f0.2: optional extension block survives save cycles.
+  Partial<Pick<ProfileConfig, 'modelProviders' | 'defaultProviderName'>>;
 
 type StoredRootConfig = Omit<RootConfig, 'preferences' | 'profiles'> & {
   preferences: Record<string, never>;
@@ -100,6 +102,10 @@ function serializeProfileConfig(profile: ProfileConfig): StoredProfileConfig {
     comments: {},
     meeting: profile.meeting,
     larkCli: profile.larkCli,
+    // f0.2: extra /model providers persist through save cycles — the earlier
+    // omission silently dropped them on the first service restart.
+    ...(profile.modelProviders ? { modelProviders: profile.modelProviders } : {}),
+    ...(profile.defaultProviderName ? { defaultProviderName: profile.defaultProviderName } : {}),
   };
 }
 

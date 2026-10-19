@@ -104,7 +104,12 @@ export class CodexAdapter implements AgentAdapter {
       model: opts.model,
       effort: opts.effort,
     });
-    const envOverrides: NodeJS.ProcessEnv = buildLarkChannelEnv(this.larkChannel);
+    const envOverrides: NodeJS.ProcessEnv = {
+      ...buildLarkChannelEnv(this.larkChannel),
+      // f0.2: per-run provider overrides layer last so /model switches take
+      // effect per run without a service restart.
+      ...(opts.envOverrides ?? {}),
+    };
     if (this.codexHome) {
       envOverrides.CODEX_HOME = this.codexHome;
     } else if (!this.inheritCodexHome) {

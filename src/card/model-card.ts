@@ -1,5 +1,11 @@
 /**
- * aiduCAT /model interactive card: combo dropdown + effort dropdown + submit.
+ * aiduCAT /model interactive card: (provider +) combo dropdown + effort
+ * dropdown + submit.
+ *
+ * f0.2 (猴哥点单): when extra providers are configured, the card carries TWO
+ * selects — provider first, then model (combo) — both submitted together;
+ * submit-time validation checks the model belongs to the chosen provider.
+ * Without extra providers the card keeps its f0.1 shape (no provider row).
  *
  * 猴哥点单 (f0.1): the submit button is only reachable once BOTH selects
  * have a value — implemented by disabling the submit until the form is
@@ -7,114 +13,205 @@
  * select blocks form submit with a native prompt), plus a client-side hint.
  */
 
+import { DEFAULT_PROVIDER, DEFAULT_PROVIDER_VALUE } from '../bot/model-providers';
+
 const CLAUDE_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
 const CODEX_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'ultra'] as const;
 const ALL_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] as const;
 
+/** effort shows capitalized in cards (Max/High) but travels lowercase. */
+function effortLabel(effort: string): string {
+  return effort.charAt(0).toUpperCase() + effort.slice(1);
+}
+
 export interface ModelCardOpts {
-  /** Combo names from 10router (live or cached). */
+  /** Combo names from the chosen provider (live or cached). */
   combos: Array<{ id: string; name: string }>;
+  /** Provider dropdown choices (default first). Empty = hide provider row. */
+  providers?: Array<{ id: string; label: string }>;
+  /** Currently stored provider preference, if any. */
+  currentProvider?: string;
+  /** f0.2: display name of the default gateway (e.g. 10router). */
+  defaultProviderName?: string;
+  /** Fetch source for the model list (hint line). */
+  source?: 'live' | 'cached' | 'unavailable';
+  /** Total models available before the dropdown cap (hint line). */
+  totalModels?: number;
   /** Currently stored model preference (combo name), if any. */
   currentModel?: string;
   /** Currently stored effort, if any. */
   currentEffort?: string;
-  /** Whether the 10router fetch succeeded — shapes the hint line. */
-  source: 'live' | 'cached' | 'unavailable';
   /** Agent runtime kind (claude or codex), used for dynamic effort hints and options. */
   agentKind?: 'claude' | 'codex';
 }
 
 /** /model — the selection card. */
 export function modelCard(opts: ModelCardOpts): object {
+  const src = opts.source ?? 'unavailable';
+  const overflowHint =
+    opts.totalModels && opts.totalModels > opts.combos.length
+      ? `\n_仅列前 ${opts.combos.length}/${opts.totalModels} 个;其余用 \`/model <模型名>\`直发_`
+      : '';
   const hint =
-    opts.source === 'unavailable'
-      ? '⚠️ 10router 暂时取不到 combo 列表（用下拉里的兜底项，或稍后重开）'
-      : opts.source === 'cached'
-        ? '_combo 列表来自 5 分钟内缓存_'
-        : '_combo 列表实时来自 10router_';
+    (src === 'unavailable'
+      ? '⚠️ 暂时取不到模型列表'
+      : src === 'cached'
+        ? '_列表来自缓存_'
+        : '') + overflowHint;
 
   const comboValues =
     opts.combos.length > 0
       ? opts.combos.map((c) => ({ text: { tag: 'plain_text', content: c.name }, value: c.name }))
       // Feishu select_static rejects an empty options array — always give the
       // user something, and the unavailable hint above explains why.
-      : [{ text: { tag: 'plain_text', content: '（取不到 combo 列表）' }, value: '__none__' }];
+      : [{ text: { tag: 'plain_text', content: '（取不到模型列表）' }, value: '__none__' }];
 
   const isCodex = opts.agentKind === 'codex';
   const isClaude = opts.agentKind === 'claude';
   const effortLevels = isCodex ? CODEX_EFFORT_LEVELS : isClaude ? CLAUDE_EFFORT_LEVELS : ALL_EFFORT_LEVELS;
-  const effortHint = isCodex
-    ? '_low 最快最省, ultra 最深; 对应 Codex reasoning effort_'
-    : isClaude
-      ? '_low 最快最省, max 最深最慢; 对应 Claude Code `--effort`_'
-      : '_low 最快最省, max/ultra 最深; 对应 agent 推理强度_';
 
-  const modelElements: object[] = [
-    {
-      tag: 'select_static',
-      name: 'combo',
-      placeholder: { tag: 'plain_text', content: '选择模型 combo' },
-      ...(opts.currentModel && opts.combos.some((c) => c.name === opts.currentModel)
-        ? { initial_option: opts.currentModel }
-        : {}),
-      options: comboValues,
-    },
-    { tag: 'hr' },
-    {
-      tag: 'markdown',
-      content: `**推理强度 (effort)**\n${effortHint}`,
-    },
-    {
-      tag: 'select_static',
-      name: 'effort',
-      placeholder: { tag: 'plain_text', content: '选择推理强度' },
-      ...(opts.currentEffort && (effortLevels as readonly string[]).includes(opts.currentEffort)
-        ? { initial_option: opts.currentEffort }
-        : {}),
-      options: effortLevels.map((level) => ({
-        text: { tag: 'plain_text', content: level },
-        value: level,
-      })),
-    },
-    { tag: 'hr' },
-    {
-      tag: 'markdown',
-      // 猴哥's rule: both selects must be chosen before submit. Required
-      // selects make Feishu block submit natively until they're filled.
-      content: '⚠️ 模型与强度**都选好后**才能点确认;提交后,下一轮对话生效',
-    },
-    {
-      tag: 'button',
-      text: { tag: 'plain_text', content: '✅ 确认切换' },
-      type: 'primary',
-      form_action_type: 'submit',
-      name: 'model_submit',
-      behaviors: [{ type: 'callback', value: { cmd: 'model.submit' } }],
-    },
-  ];
+  const modelElements: object[] = [];
+
+  // f0.2 猴哥点单 (2026-10-19 版式): three labelled dropdown sections —
+  // Provider / Model / Effort Level — separated by hr, then the submit
+  // button with its side note. No caption paragraphs, no blank lines.
+  // A one-line fallback hint only renders when the model list is degraded.
+  const providerSelect = {
+    tag: 'select_static',
+    name: 'provider',
+    placeholder: { tag: 'plain_text', content: '选择 provider' },
+    ...(opts.currentProvider &&
+    opts.currentProvider !== DEFAULT_PROVIDER &&
+    opts.providers?.some((p) => p.id === opts.currentProvider)
+      ? { initial_option: opts.currentProvider }
+      : { initial_option: DEFAULT_PROVIDER_VALUE }),
+    options: (opts.providers ?? []).map((p) => ({
+      text: { tag: 'plain_text', content: p.label },
+      value: p.id === DEFAULT_PROVIDER ? DEFAULT_PROVIDER_VALUE : p.id,
+    })),
+  };
+  const modelSelect = {
+    tag: 'select_static',
+    name: 'combo',
+    placeholder: { tag: 'plain_text', content: '选择模型' },
+    ...(opts.currentModel && opts.combos.some((c) => c.name === opts.currentModel)
+      ? { initial_option: opts.currentModel }
+      : {}),
+    options: comboValues,
+  };
+
+  const effortSelect = {
+    tag: 'select_static',
+    name: 'effort',
+    placeholder: { tag: 'plain_text', content: '选择推理强度' },
+    ...(opts.currentEffort && (effortLevels as readonly string[]).includes(opts.currentEffort)
+      ? { initial_option: opts.currentEffort }
+      : {}),
+    options: effortLevels.map((level) => ({
+      // Display capitalized (Max/High), value stays lowercase for the CLI.
+      text: { tag: 'plain_text', content: effortLabel(level) },
+      value: level,
+    })),
+  };
+
+  // 猴哥点单: Provider / Model / Effort 三个下拉一行三列（字段短，一行足够）。
+  modelElements.push({
+    tag: 'column_set',
+    flex_mode: 'stretch',
+    columns: [
+      ...(opts.providers && opts.providers.length > 1
+        ? [{
+            tag: 'column',
+            width: 'weighted',
+            weight: 1,
+            elements: [
+              { tag: 'markdown', content: '**Provider**' },
+              providerSelect,
+            ],
+          }]
+        : []),
+      {
+        tag: 'column',
+        width: 'weighted',
+        weight: 1,
+        elements: [
+          { tag: 'markdown', content: '**Model**' },
+          modelSelect,
+        ],
+      },
+      {
+        tag: 'column',
+        width: 'weighted',
+        weight: 1,
+        elements: [
+          { tag: 'markdown', content: '**Effort**' },
+          effortSelect,
+        ],
+      },
+    ],
+  });
+
+  const currentBits = [
+    opts.currentModel ? `\`${opts.currentModel}\`` : '跟随默认',
+    // f0.2: show the configured provider NAME, not the internal id — the
+    // default sentinel renders as the default gateway's name (e.g. 10router).
+    opts.providers && opts.providers.length > 1
+      ? ` · ${
+          !opts.currentProvider ||
+          opts.currentProvider === DEFAULT_PROVIDER ||
+          opts.currentProvider === DEFAULT_PROVIDER_VALUE
+            ? (opts.defaultProviderName?.trim() || '默认')
+            : (opts.providers.find((p) => p.id === opts.currentProvider)?.label ?? opts.currentProvider)
+        }`
+      : '',
+    ` · effort: ${opts.currentEffort ? effortLabel(opts.currentEffort) : '默认'}`,
+  ].join('');
 
   return {
     schema: '2.0',
     config: {},
     body: {
       elements: [
-        {
-          tag: 'markdown',
-          content:
-            `**模型切换**\n\n${hint}\n\n` +
-            `当前: ${opts.currentModel ? `\`${opts.currentModel}\`` : '跟随默认'}` +
-            ` · effort: ${opts.currentEffort ?? '默认'}`,
-        },
-        { tag: 'hr' },
+        { tag: 'markdown', content: '**模型切换**' },
+        ...(hint
+          ? [{ tag: 'markdown', content: `_当前: ${currentBits} · ${hint.replace(/\n/g, ' ')}_` }]
+          : [{ tag: 'markdown', content: `_当前: ${currentBits}_` }]),
         {
           tag: 'form',
           name: 'model_form',
           elements: [
-            {
-              tag: 'markdown',
-              content: '**模型 combo**\n_10router 自定义组合,增删在 10router 面板操作_',
-            },
             ...modelElements,
+            {
+              tag: 'column_set',
+              flex_mode: 'none',
+              columns: [
+                {
+                  tag: 'column',
+                  width: 'auto',
+                  vertical_align: 'center',
+                  elements: [{
+                    tag: 'button',
+                    text: { tag: 'plain_text', content: '✅ 确认' },
+                    type: 'primary',
+                    form_action_type: 'submit',
+                    name: 'model_submit',
+                    behaviors: [{ type: 'callback', value: { cmd: 'model.submit' } }],
+                  }],
+                },
+                {
+                  tag: 'column',
+                  width: 'auto',
+                  vertical_align: 'center',
+                  elements: [{
+                    tag: 'button',
+                    text: { tag: 'plain_text', content: '❌ 取消' },
+                    type: 'default',
+                    name: 'model_cancel',
+                    behaviors: [{ type: 'callback', value: { cmd: 'model.cancel' } }],
+                  }],
+                },
+              ],
+            },
           ],
         },
       ],
@@ -123,7 +220,17 @@ export function modelCard(opts: ModelCardOpts): object {
 }
 
 /** /model submit — result card shown in place after saving. */
-export function modelSavedCard(model: string, effort: string): object {
+export function modelSavedCard(
+  model: string,
+  effort: string,
+  provider?: string,
+  defaultProviderName?: string,
+): object {
+  const named =
+    !provider || provider === 'default'
+      ? defaultProviderName?.trim() || '默认'
+      : provider;
+  const providerBit = ` · provider \`${named}\``;
   return {
     schema: '2.0',
     config: {},
@@ -132,7 +239,7 @@ export function modelSavedCard(model: string, effort: string): object {
         {
           tag: 'markdown',
           content:
-            `✅ 已保存：模型 \`${model}\` · effort \`${effort}\`\n\n_下一轮对话生效; 已在跑的任务不受影响_`,
+            `✅ 已保存：模型 \`${model}\`${providerBit} · effort \`${effortLabel(effort)}\`\n\n_下一轮对话生效; 已在跑的任务不受影响_`,
         },
       ],
     },
@@ -150,11 +257,12 @@ export function modelCancelledCard(): object {
   };
 }
 
-/** Parse submitted form values into (model, effort); null = keep current. */
+/** Parse submitted form values into (provider, model, effort); null = keep current. */
 export function parseModelCardSubmit(
   formValue: Record<string, unknown>,
   combos: Array<{ name: string }>,
-): { model: string | null; effort: string | null } {
+  validProviders?: Array<string>,
+): { provider: string | null; model: string | null; effort: string | null } {
   const rawModel = String(formValue.combo ?? '').trim();
   const validModel =
     rawModel !== '' && rawModel !== '__none__' && combos.some((c) => c.name === rawModel)
@@ -162,5 +270,8 @@ export function parseModelCardSubmit(
       : null;
   const rawEffort = String(formValue.effort ?? '').trim();
   const validEffort = (ALL_EFFORT_LEVELS as readonly string[]).includes(rawEffort) ? rawEffort : null;
-  return { model: validModel, effort: validEffort };
+  const rawProvider = String(formValue.provider ?? '').trim();
+  const validProvider =
+    rawProvider && (!validProviders || validProviders.includes(rawProvider)) ? rawProvider : null;
+  return { provider: validProvider, model: validModel, effort: validEffort };
 }

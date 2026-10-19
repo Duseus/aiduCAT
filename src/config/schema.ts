@@ -114,6 +114,8 @@ export interface AppPreferences {
    * CLI / account default applies. Default: unset.
    */
   model?: string;
+  /** f0.2 stored provider choice. 'default'/unset = service env credentials. */
+  provider?: string;
   /**
    * Claude Code reasoning-effort level forwarded as `--effort`. Valid values
    * (per the claude CLI): low / medium / high / xhigh / max. `undefined` means
@@ -188,6 +190,27 @@ export interface AppConfig {
     url?: string;
     token?: SecretInput;
   };
+}
+
+/**
+ * f0.2: additional API providers selectable in the /model card. Defined here
+ * and embedded in ProfileConfig (profiles/<name>.modelProviders) — the root
+ * config schema has no extension blocks, and profile-level is the right
+ * scope anyway (each profile's agent talks to its own provider set).
+ */
+export interface ModelProviderDef {
+  /** Human label shown in the dropdown (e.g. `10r 东京`). */
+  label: string;
+  /** API base URL, e.g. https://your-gateway.example.com/v1 */
+  baseUrl: string;
+  /** API key: plain string, `${ENV_VAR}` template, or env/file/exec ref. */
+  apiKey: SecretInput;
+  /** Which agent flag family this provider talks: anthropic or openai wire. */
+  wire: 'anthropic' | 'openai';
+  /** Optional static model list; live /v1/models pull when omitted. */
+  models?: string[];
+  /** Context window for the ctx % meter (f0.2: 10r combos are all 1M). */
+  contextWindow?: number;
 }
 
 export function isComplete(cfg: Partial<AppConfig>): cfg is AppConfig {

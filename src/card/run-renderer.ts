@@ -1,5 +1,6 @@
 import { deepMaskEmails } from './mask-email';
 import type { Block, FooterStatus, RunState, ToolEntry } from './run-state';
+import { logoImgKeyForModel } from './model-logo';
 import { toolBodyMd, toolHeaderPlain, toolHeaderText } from './tool-render';
 const REASONING_MAX = 1500;
 const COLLAPSE_TOOL_THRESHOLD = 3;
@@ -25,6 +26,9 @@ export interface RunCardRenderOptions {
   /** aiduCAT: model context window (tokens) from 10router; enables the
    * context-usage percentage on header line 1. Undefined = no percentage. */
   contextWindow?: number;
+  /** f0.2: the clarify question the user just answered — buttons collapse
+   * into a chosen-answer line so the same card can't be answered twice. */
+  clarifyAnswered?: string;
 }
 
 export function renderCard(state: RunState, options: RunCardRenderOptions = {}): object {
@@ -57,55 +61,88 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
     }
   }
 
-  // aiduCAT: live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…) sits on
-  // its own line above the panel, below the answer, left-aligned — the panel
-  // interior/header stays uniformly clean (猴哥点单 f0.1: panel 里始终保持美观整齐).
-  // It disappears once the run ends — the panel border color carries the result.
-  const statusLine =
+  // f0.2 猴哥点单: the live status word (💭Reasoning... / 🛠️Tooling... /
+  // ☤aiduCATing...) moved INTO the panel header line 1, leftmost — ahead of
+  // the 💭/🛠️/⏱️ counters. It disappears once the run ends; the panel border
+  // color carries the result. No standalone status line above the panel.
+  const statusWord =
     state.terminal === 'running'
       ? state.footer === 'tool_running'
-        ? '🫧Poping…'
+        ? '🛠️Tooling...'
         : state.footer === 'streaming'
-          ? '☤aiduCATing…'
-          : '🌊Waving…'
+          ? '☤aiduCATing...'
+          : '💭Reasoning...'
       : '';
-  if (statusLine) elements.push(markdown(statusLine));
 
   // aiduCAT: one collapsed panel carrying reasoning + every tool call + the
   // run meta header (aiduPOP layout). Hidden when there is nothing to show.
-  const popPanel = aiduPopPanel(state, options);
+  const popPanel = aiduPopPanel(state, options, statusWord);
   if (popPanel) elements.push(popPanel);
 
   // aiduCAT clarify: when the run ended while waiting on a parsed
   // [CLARIFY] marker, render the question + one button per option right
   // below the answer. A click forwards the choice back into the scope's
   // pending queue so the agent's session resumes with the answer.
-  if (state.clarify && state.terminal !== 'running') {
-    elements.push(markdown(`❓ **需要你确认**：${state.clarify.question}\n_点选下面按钮回复_`));
-    elements.push(
-      state.clarify.options.map((option) => ({
-        tag: 'button',
-        text: { tag: 'plain_text', content: option },
-        type: 'default',
-        size: 'medium',
-        behaviors: [
-          {
-            type: 'callback',
-            value: {
-              cmd: 'clarify.answer',
-              arg: JSON.stringify({ q: state.clarify!.question, a: option }),
+  if (state.clarify && state.terminal !== 'running' && !options.clarifyAnswered) {
+    // f0.2 猴哥点单: dropdown instead of a button array — select_static is
+    // naturally single-choice (repeat clicks just re-open the same form) and
+    // routes through the SAME cardAction submit path /model uses, which is
+    // known-good; the old button array's callbacks never reached the bot.
+    elements.push(markdown(`⁉️ **TBC**：${state.clarify.question}\n_下拉选择后点确认_`));
+    elements.push({
+      tag: 'form',
+      name: 'clarify_form',
+      elements: [
+        {
+          tag: 'select_static',
+          name: 'clarify_choice',
+          placeholder: { tag: 'plain_text', content: '选择一个选项' },
+          options: state.clarify.options.map((option) => ({
+            text: { tag: 'plain_text', content: option },
+            value: option,
+          })),
+        },
+        {
+          tag: 'column_set',
+          flex_mode: 'stretch',
+          columns: [
+            {
+              tag: 'column',
+              width: 'auto',
+              vertical_align: 'center',
+              elements: [{
+                tag: 'button',
+                text: { tag: 'plain_text', content: '✅ 确认' },
+                type: 'primary',
+                form_action_type: 'submit',
+                name: 'clarify_submit',
+                behaviors: [
+                  {
+                    type: 'callback',
+                    value: {
+                      cmd: 'clarify.answer',
+                      arg: JSON.stringify({ q: state.clarify!.question }),
+                    },
+                  },
+                ],
+              }],
             },
-          },
-        ],
-      })),
-    );
+          ],
+        },
+      ],
+    });
+  }
+  // f0.2: answered state — swap the question+buttons for a single receipt
+  // line so the same card can't be answered twice.
+  if (options.clarifyAnswered) {
+    elements.push(markdown(`✅ **已选**：${options.clarifyAnswered}`));
   }
 
   // aiduCAT: terminal state is expressed by the panel border color (aiduPOP
   // style) — 完成绿 / 停止黄 / 出错红 — not by a trailing text note. Keep an
   // empty-answer fallback note so a streamed card is never fully empty.
   if (state.terminal === 'done' && elements.length === 0) {
-    elements.push(noteMd('🚫Nothing'));
+    elements.push(noteMd('🚫'));
   }
 
   // aiduCAT: no footer status line and no stop button — the live status word
@@ -134,12 +171,12 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
  * collapsed header stays pure meta (counts + elapsed); on completion the
  * counts/values are final.
  */
-function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | null {
+function aiduPopPanel(state: RunState, options: RunCardRenderOptions, statusWord = ''): object | null {
   const tools = state.blocks.filter((b): b is Extract<Block, { kind: 'tool' }> => b.kind === 'tool');
   const hasReasoning = state.reasoning.content.trim().length > 0;
   const hasError = state.terminal === 'error' && !!state.errorMsg;
 
-  const meta = metaHeader(state, options);
+  const meta = metaHeader(state, options, statusWord);
   if (!hasReasoning && tools.length === 0 && !meta) return null;
 
   const title = meta;
@@ -147,8 +184,8 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
   const bodyParts: string[] = [];
   if (hasError) bodyParts.push(`⚠️ ${state.errorMsg}`);
   if (hasReasoning) {
-    // aiduCAT: 🌊 marks a thinking burst — same emoji as the collapsed header.
-    bodyParts.push(`🌊 ${truncate(state.reasoning.content, REASONING_MAX)}`);
+    // aiduCAT: 💭 marks a thinking burst — same emoji as the collapsed header.
+    bodyParts.push(`💭 ${truncate(state.reasoning.content, REASONING_MAX)}`);
   }
   if (tools.length > 0) {
     // Latest tool on top so the freshest activity is what you see on expand.
@@ -167,6 +204,11 @@ function aiduPopPanel(state: RunState, options: RunCardRenderOptions): object | 
     // running/none grey, done green, stopped/timeout yellow, error red.
     border: panelBorderColor(state),
     body: bodyParts.join('\n\n') || '_（无过程记录）_',
+    // f0.2 猴哥点单: the panel header icon slot shows the current model's
+    // vendor logo; un-mapped models keep the default chevron.
+    ...(options.model && logoImgKeyForModel(options.model)
+      ? { logoImgKey: logoImgKeyForModel(options.model) }
+      : {}),
   });
 }
 
@@ -186,31 +228,42 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
  * Elapsed keeps ticking across card updates because renderCard is re-run on
  * every streaming update with the fixed `options.startedAt`.
  */
-function metaHeader(state: RunState, options: RunCardRenderOptions): string {
+function metaHeader(state: RunState, options: RunCardRenderOptions, statusWord = ''): string {
+  // f0.2 猴哥点单 (调整): line 1 = model · effort · context; line 2 = the
+  // live status word (leftmost, only while running) followed by the
+  // thinking/tool/elapsed counters. On completion the status word disappears
+  // and the counters keep the row stable.
   const line1: string[] = [];
-  // aiduCAT f0.1: the live status word moved out of the header — it renders on
-  // its own line above the panel (below the answer, left-aligned) so the panel
-  // header stays uniformly clean at all times.
   if (options.model) line1.push(options.model);
-  if (options.effort) line1.push(options.effort);
+  if (options.effort) line1.push(effortLabel(options.effort));
   const ctx = contextUsageText(state, options);
   if (ctx) line1.push(ctx);
   if (state.terminal === 'error') line1.push('❌');
 
-  // 猴哥点单 f0.1+: counts always show, even at zero — the header keeps a
-  // stable shape instead of pieces popping in and out.
   const line2: string[] = [];
-  line2.push(`🌊 ${state.reasoning.segments}`);
+  line2.push(`💭 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  line2.push(`🫧 ${toolCount}`);
+  line2.push(`🛠️ ${toolCount}`);
   if (options.startedAt) {
     const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
     const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
-    line2.push(`✨ ${label}`);
+    line2.push(`⏱️ ${label}`);
   }
+  // 猴哥点单: status word trails the counters so the numbers don't shift
+  // leftward every time the word appears or changes.
+  if (statusWord) line2.push(statusWord);
 
-  // 猴哥点单: counts/elapsed on top, model/effort/context below.
-  return [line2.join(' · '), line1.join(' · ')].filter(Boolean).join('\n');
+  // 猴哥点单 f0.2: single-line header — model/effort/ctx line and the
+  // status+counters line merged with the ' · ' separator.
+  return [line1.join(' · '), line2.join(' · ')].filter(Boolean).join(' · ');
+}
+
+/**
+ * aiduCAT: effort reads as a proper noun in the header — `Max`, `High`,
+ * `XHigh`, `Ultra` (首字母大写, per 猴哥). Unknown values pass through as-is.
+ */
+function effortLabel(effort: string): string {
+  return effort.charAt(0).toUpperCase() + effort.slice(1);
 }
 
 /**
@@ -273,31 +326,38 @@ interface PanelOpts {
   expanded: boolean;
   border: 'grey' | 'red' | 'blue' | 'green' | 'yellow';
   body: string;
+  /** f0.2: model logo img_key — replaces the chevron in the header icon slot. */
+  logoImgKey?: string;
 }
 
 function collapsiblePanel(opts: PanelOpts): object {
   return {
     tag: 'collapsible_panel',
     expanded: opts.expanded,
-    header: panelHeader(opts.title),
+    header: panelHeader(opts.title, opts.logoImgKey),
     border: { color: opts.border, corner_radius: '5px' },
-    vertical_spacing: '8px',
-    padding: '8px 8px 8px 8px',
+    vertical_spacing: '4px',
+    padding: '6px 8px 6px 8px',
     elements: [{ tag: 'markdown', content: opts.body, text_size: 'notation' }],
   };
 }
 
-function panelHeader(titleMd: string): object {
+function panelHeader(titleMd: string, logoImgKey?: string): object {
   return {
     // aiduCAT: text_size=notation shrinks the collapsed header title to match
     // aiduPOP's small panel type (verified live: <font> tags are ignored on
     // panel headers, text_size on the title markdown is not).
     title: { tag: 'markdown', content: titleMd, text_size: 'notation' },
     vertical_align: 'center',
-    icon: { tag: 'standard_icon', token: 'down-small-ccm_outlined', size: '16px 16px' },
-    // 猴哥点单: pin the chevron to the far right of the header row instead of
-    // hugging the title text (follow_text) — cleaner with the two-line header.
-    icon_position: 'right',
+    // f0.2 猴哥点单: logo replaces the chevron in the header icon slot.
+    // Omitting icon_position puts the mark at the title's left edge — the
+    // closest structural approximation to "before the model id". When the
+    // model has no logo we fall back to the chevron pinned right so the
+    // collapse affordance stays.
+    icon: logoImgKey
+      ? { tag: 'custom_icon', img_key: logoImgKey, size: '16px 16px' }
+      : { tag: 'standard_icon', token: 'down-small-ccm_outlined', size: '16px 16px' },
+    ...(logoImgKey ? {} : { icon_position: 'right' }),
     icon_expanded_angle: -180,
   };
 }
@@ -311,13 +371,13 @@ function noteMd(content: string): object {
 }
 
 function summaryText(state: RunState): string {
-  if (state.terminal === 'interrupted') return '⭕️';
-  if (state.terminal === 'idle_timeout') return '⚠️';
-  if (state.terminal === 'error') return '❌';
-  if (state.terminal === 'done') return '✅';
-  if (state.footer === 'tool_running') return '🫧Poping…';
-  if (state.footer === 'streaming') return '☤aiduCATing…';
-  return '🌊Waving…';
+  if (state.terminal === 'interrupted') return '⭕️Stop';
+  if (state.terminal === 'idle_timeout') return '⚠️Timeout';
+  if (state.terminal === 'error') return '❌Error';
+  if (state.terminal === 'done') return '✅Done';
+  if (state.footer === 'tool_running') return '🛠️Tooling...';
+  if (state.footer === 'streaming') return '☤aiduCATing...';
+  return '💭Reasoning...';
 }
 
 function truncate(s: string, max: number): string {

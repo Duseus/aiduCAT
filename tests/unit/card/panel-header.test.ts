@@ -21,8 +21,8 @@ function stateWithUsage(overrides: Partial<RunState> = {}): RunState {
   return { ...state, ...overrides };
 }
 
-describe('two-line panel header (猴哥点单 f0.1)', () => {
-  it('top line carries thinking · tools · elapsed, bottom line carries model · effort · ctx', () => {
+describe('single-line panel header (猴哥点单 f0.2)', () => {
+  it('model · effort · ctx · counters · status word, all on one line', () => {
     const state = stateWithUsage();
     const card = renderCard(state, {
       model: 'Gemini-3.8-Flash',
@@ -30,27 +30,24 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       contextWindow: 1048576,
       startedAt: Date.now() - 5_000,
     });
-    const title = panelTitle(card);
-    const [top, bottom] = title.split('\n');
-    // 猴哥点单: zero counts still show — stable header shape.
-    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 5s');
-    expect(bottom).toBe('Gemini-3.8-Flash · max · 25k/1M (2%)');
+    expect(panelTitle(card)).toBe(
+      'Gemini-3.8-Flash · Max · 25k/1M (2%) · 💭 0 · 🛠️ 0 · ⏱️ 5s · 💭Reasoning...',
+    );
   });
 
   it('omits ctx% when contextWindow unknown, omits effort when unset', () => {
     const state = stateWithUsage();
     const card = renderCard(state, { model: 'SomeModel' });
-    const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0\nSomeModel · 25k/1M (3%)');
+    expect(panelTitle(card)).toBe('SomeModel · 25k/1M (3%) · 💭 0 · 🛠️ 0 · 💭Reasoning...');
   });
 
   it('omits the whole ctx piece until usage arrives', () => {
     const card = renderCard(initialState, {
       model: 'GLM-5.3-Flash',
       effort: 'high',
-      contextWindow: 1000000,
+      contextWindow: 1_000_000,
     });
-    expect(panelTitle(card)).toBe('🌊 0 · 🫧 0\nGLM-5.3-Flash · high');
+    expect(panelTitle(card)).toBe('GLM-5.3-Flash · High · 💭 0 · 🛠️ 0 · 💭Reasoning...');
   });
 
   it('formats used/total with k/M units and percentage', () => {
@@ -82,8 +79,6 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       outputTokens: 500,
       cachedInputTokens: 0,
     });
-    // Terminal result carries the whole-turn cumulative total — must not
-    // overwrite the per-message snapshot used for the readout.
     state = reduce(state, {
       type: 'usage',
       inputTokens: 900_000,
@@ -94,24 +89,25 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     expect(panelTitle(card)).toContain('25.5k/1M (3%)');
   });
 
-  it('zero thinking/tool counts still render on the top line', () => {
+  it('zero counts still render, status word trailing', () => {
     const card = renderCard(initialState, { model: 'M', startedAt: Date.now() - 1000 });
-    const [top] = panelTitle(card).split('\n');
-    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 1s');
+    expect(panelTitle(card)).toBe('M · 💭 0 · 🛠️ 0 · ⏱️ 1s · 💭Reasoning...');
   });
 
-  it('thinking and tool counts land on the top line', () => {
+  it('status word disappears on completion; counters stay', () => {
     let state = reduce(initialState, { type: 'thinking', delta: 'hmm' });
     state = reduce(state, { type: 'tool_use', id: 't1', name: 'Bash', input: {} });
+    state = reduce(state, { type: 'done', terminationReason: 'normal' });
     const card = renderCard(state, {
       model: 'M',
       effort: 'low',
-      contextWindow: 1000000,
+      contextWindow: 1_000_000,
       startedAt: Date.now() - 2000,
     });
-    const [top] = panelTitle(card).split('\n');
-    expect(top).toContain('🌊 1');
-    expect(top).toContain('🫧 1');
-    expect(top).toContain('✨');
+    const title = panelTitle(card);
+    expect(title).toContain('💭 1');
+    expect(title).toContain('🛠️ 1');
+    expect(title).toContain('⏱️');
+    expect(title).not.toContain('Reasoning...');
   });
 });

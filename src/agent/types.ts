@@ -42,6 +42,12 @@ export interface AgentRunOptions {
   model?: string;
   /** Claude Code reasoning effort forwarded as `--effort` (low..max). */
   effort?: string;
+  /**
+   * f0.2: per-run provider credential overrides. When set, these keys are
+   * layered over the inherited process env for this run only — switching
+   * providers in /model takes effect on the next run without restarting.
+   */
+  envOverrides?: Record<string, string>;
   images?: readonly string[];
   sandbox?: CodexSandboxMode;
   permissionMode?: ClaudePermissionMode;

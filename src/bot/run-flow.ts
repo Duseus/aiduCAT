@@ -148,6 +148,15 @@ export async function startRunFlow(input: StartRunFlowInput): Promise<StartRunFl
         input.profileConfig.agentKind,
         input.profileConfig.preferences.model,
       ),
+      // f0.2: non-default provider → per-run credential overrides. `wire`
+      // decides which env family the agent CLI reads (claude: ANTHROPIC_*,
+      // codex: OPENAI_*). Resolution is async and failure-safe: on key
+      // errors we log and fall back to the inherited service env.
+      ...(await runProviderEnvOverrides(
+        input.profileConfig.modelProviders,
+        input.profileConfig.preferences.provider,
+        input.capability.agentId,
+      )),
       // aiduCAT: forward the stored reasoning effort (claude forwards as --effort,
       // codex forwards as -c model_reasoning_effort="..."). If claude is set to
       // 'ultra' (supported on codex), automatically coerce to 'max' to avoid CLI warnings.
@@ -218,4 +227,45 @@ export function recordRunSessionEvent(input: RecordRunSessionEventInput): void {
       threadId: input.event.threadId,
     });
   }
+}
+
+/**
+ * f0.2: env overrides for a non-default /model provider.
+ *
+ * `wire` picks the env family the agent CLI reads — claude consumes
+ * ANTHROPIC_BASE_URL/ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL harmless), codex
+ * consumes OPENAI_BASE_URL/OPENAI_API_KEY. Key resolution mirrors
+ * model-providers.resolveProviderKey; a failure logs and returns no override
+ * so the run continues on the service env instead of erroring.
+ */
+async function runProviderEnvOverrides(
+  providers: ProfileConfig['modelProviders'],
+  providerId: string | undefined,
+  agentId: 'claude' | 'codex' | string,
+): Promise<Record<string, string> | undefined> {
+  if (!providerId || providerId === 'default') return undefined;
+  const def = providers?.[providerId];
+  if (!def) return undefined;
+  const { resolveProviderKey } = await import('./model-providers');
+  const key = await resolveProviderKey(def);
+  if (!key) {
+    console.warn(
+      JSON.stringify({ area: 'provider', msg: 'key-unresolved-fallback-default', provider: providerId }),
+    );
+    return undefined;
+  }
+  const base: Record<string, string> = {
+    ...(def.contextWindow ? {} : {}),
+  };
+  if (def.wire === 'anthropic') {
+    base.ANTHROPIC_BASE_URL = def.baseUrl;
+    base.ANTHROPIC_API_KEY = key;
+    if (def.contextWindow) base.CLAUDE_CODE_MAX_CONTEXT_TOKENS = String(def.contextWindow);
+  } else {
+    base.OPENAI_BASE_URL = def.baseUrl;
+    base.OPENAI_API_KEY = key;
+    if (def.contextWindow) base.CODEX_CONTEXT_WINDOW = String(def.contextWindow);
+  }
+  void agentId;
+  return base;
 }

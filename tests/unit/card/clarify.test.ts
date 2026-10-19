@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { renderCard } from '../../../src/card/run-renderer.js';
 import {
   initialState,
   parseClarifyMarker,
@@ -65,5 +66,27 @@ describe('clarify in the reduce loop', () => {
     let state = reduce(initialState, { type: 'text', delta: `选一个\n${MARKER}` });
     state = markInterrupted(state);
     expect(state.clarify?.options).toEqual(['猫', '狗']);
+  });
+});
+
+describe('clarify renders as dropdown form (f0.2 regression)', () => {
+  it('final_text clarify renders a form with select + submit, no nested arrays', () => {
+    let state = reduce(initialState, {
+      type: 'final_text',
+      content: '先问一下 [CLARIFY]{"question":"猫还是狗？","options":["猫","狗"]}',
+    });
+    state = reduce(state, { type: 'done', terminationReason: 'normal' });
+    const card = renderCard(state) as { body: { elements: unknown[] } };
+    const els = card.body.elements;
+    for (const e of els) {
+      expect(Array.isArray(e)).toBe(false);
+    }
+    const json = JSON.stringify(card);
+    expect(json).toContain('select_static');
+    expect(json).toContain('clarify_choice');
+    expect(json).toContain('form_action_type');
+    // options land in the dropdown
+    expect(json).toContain('猫');
+    expect(json).toContain('狗');
   });
 });

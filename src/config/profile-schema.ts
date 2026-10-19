@@ -152,6 +152,14 @@ export interface ProfileConfig {
   };
   secrets?: SecretsConfig;
   preferences: Omit<AppPreferences, 'access' | 'requireMentionInGroup'>;
+  /** f0.2: extra API providers for the /model card (see ModelProviderDef). */
+  modelProviders?: Record<string, import('./schema').ModelProviderDef>;
+  /**
+   * f0.2: display name of the gateway the service environment already points
+   * to (e.g. `10router`). Shown as the first /model dropdown choice instead
+   * of a URL — provider names are the user-facing identity, URLs are noise.
+   */
+  defaultProviderName?: string;
   access: ProfileAccess;
   workspaces: {
     default?: string;
@@ -222,6 +230,8 @@ export function normalizeProfileConfig(input: unknown): ProfileConfig {
   }
   const raw = input as {
     schemaVersion?: unknown;
+    modelProviders?: unknown;
+    defaultProviderName?: unknown;
     agentKind?: unknown;
     mode?: unknown;
     accounts?: unknown;
@@ -283,6 +293,14 @@ export function normalizeProfileConfig(input: unknown): ProfileConfig {
     sandbox,
     permissions,
     permissionSource,
+    // f0.2: structural passthrough validated lightly — entries are read via
+    // the SecretInput chain at run time; malformed entries fail there.
+    ...(raw.modelProviders && typeof raw.modelProviders === 'object'
+      ? { modelProviders: raw.modelProviders as ProfileConfig['modelProviders'] }
+      : {}),
+    ...(typeof raw.defaultProviderName === 'string' && raw.defaultProviderName.trim()
+      ? { defaultProviderName: raw.defaultProviderName.trim() }
+      : {}),
     ...(raw.codex ? { codex: normalizeCodex(raw.codex) } : {}),
     attachments: {
       maxCount: numberOr(raw.attachments?.maxCount, 10),

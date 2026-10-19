@@ -28,7 +28,7 @@ export interface TenRouterCombo {
 }
 
 export interface TenRouterConfig {
-  /** 10router base URL, e.g. https://10r.hycoforce.com */
+  /** 10router base URL, e.g. https://your-gateway.example.com */
   baseUrl: string;
   /** Management token value (x-10r-cli-token). */
   token: string;
@@ -47,6 +47,36 @@ interface CacheEntry {
 
 const CACHE_TTL_MS = 5 * 60_000;
 let cache: CacheEntry | undefined;
+
+/**
+ * aiduCAT: one immediate retry on network failure. Right after a service
+ * restart (or on Cloudflare-tunnel jitter) the first fetch can fail with a
+ * bare "fetch failed" while a retry a second later succeeds — seen live on
+ * Hangzhou 2026-10-18 when /model blanked twice after deploys.
+ * Logs the underlying cause (ECONNRESET / EAI_AGAIN / abort) so failures
+ * are diagnosable instead of a bare "fetch failed".
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  const attempt = async (): Promise<Response> => {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      const cause = (err as { cause?: { code?: string; message?: string } }).cause;
+      log.warn('tenrouter', 'fetch-network-failed', {
+        path: new URL(url).pathname,
+        err: err instanceof Error ? err.message : String(err),
+        cause: cause?.code ?? cause?.message ?? 'unknown',
+      });
+      throw err;
+    }
+  };
+  try {
+    return await attempt();
+  } catch {
+    await new Promise((r) => setTimeout(r, 1_500));
+    return attempt();
+  }
+}
 
 /** Read an env-style secret value via the app secret chain. A plain string
  * token rides the same "${VAR}" template resolution; SecretRef forms
@@ -104,7 +134,7 @@ export async function fetchCombos(cfg: TenRouterConfig): Promise<ComboCatalog> {
     return { combos: cache.combos, source: 'cached' };
   }
   try {
-    const res = await fetch(`${cfg.baseUrl}/api/combos`, {
+    const res = await fetchWithRetry(`${cfg.baseUrl}/api/combos`, {
       headers: { 'x-10r-cli-token': cfg.token },
       signal: AbortSignal.timeout(COMBOS_TIMEOUT_MS),
     });
@@ -147,7 +177,7 @@ export async function fetchContextWindows(baseUrl: string): Promise<Map<string, 
   const apiKey = (process.env.ANTHROPIC_API_KEY ?? '').trim();
   if (!apiKey) return contextWindows?.map ?? new Map();
   try {
-    const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/v1/models`, {
+    const res = await fetchWithRetry(`${baseUrl.replace(/\/+$/, '')}/v1/models`, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(MODELS_TIMEOUT_MS),
     });
