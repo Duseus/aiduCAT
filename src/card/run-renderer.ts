@@ -108,20 +108,141 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
     elements.push(noteMd('🚫Nothing'));
   }
 
-  // aiduCAT: no footer status line and no stop button — the live status word
-  // lives at the far left of the panel header while running and vanishes on
-  // completion (border color takes over), and stopping goes through /stop.
+  // Hermes footer: 当任务结束时，在底部添加分割线和状态元数据行
+  const footerElement = renderHermesFooter(state, options);
+  if (footerElement) {
+    elements.push({ tag: 'hr' });
+    elements.push(footerElement);
+  }
 
   // Mask raw emails across every text field so the Feishu tenant audit doesn't
   // reject the (streamed) card with a 400 EMAIL_ADDRESS — see mask-email.ts.
-  return deepMaskEmails({
+  const cardPayload: Record<string, any> = {
     schema: '2.0',
     config: {
       streaming_mode: state.terminal === 'running',
       summary: { content: summaryText(state) },
     },
     body: { elements },
-  });
+  };
+
+  const hermesHeader = renderHermesHeader(state);
+  if (hermesHeader) {
+    cardPayload.header = hermesHeader;
+  }
+
+  return deepMaskEmails(cardPayload);
+}
+
+/**
+ * Hermes 风格卡片 Header:
+ * - streaming: 蓝色 template，标题显示 "💭 处理中..." 或 "💭 处理中... ⚡ <工具名>"
+ * - done: 绿色 template，标题显示 "✅ 已完成"
+ * - error: 红色 template，标题显示 "❌ 出错"
+ * - interrupted / idle_timeout: 红色/黄色 template，标题显示 "⏹ 已停止"
+ */
+function renderHermesHeader(state: RunState): object | null {
+  if (state.terminal === 'running') {
+    let title = '💭 处理中...';
+    const runningTool = state.blocks
+      .filter((b): b is Extract<Block, { kind: 'tool' }> => b.kind === 'tool' && b.tool.status === 'running')
+      .slice(-1)[0];
+    if (runningTool) {
+      const toolName = simplifyToolName(runningTool.tool.name);
+      title = `💭 处理中... ⚡ ${toolName}`;
+    }
+    return {
+      template: 'blue',
+      title: { tag: 'plain_text', content: title },
+    };
+  }
+
+  if (state.terminal === 'done') {
+    return {
+      template: 'green',
+      title: { tag: 'plain_text', content: '✅ 已完成' },
+    };
+  }
+
+  if (state.terminal === 'error') {
+    return {
+      template: 'red',
+      title: { tag: 'plain_text', content: '❌ 出错' },
+    };
+  }
+
+  if (state.terminal === 'interrupted' || state.terminal === 'idle_timeout') {
+    return {
+      template: 'red',
+      title: { tag: 'plain_text', content: '⏹ 已停止' },
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Hermes 风格底部 Footer:
+ * 包含状态、耗时、用量、模型:
+ * "✅ 已完成 · 7s · 28.2k/1M (3%) · ⚕default"
+ */
+function renderHermesFooter(state: RunState, options: RunCardRenderOptions): object | null {
+  if (state.terminal === 'running') return null;
+
+  const parts: string[] = [];
+
+  if (state.terminal === 'done') {
+    parts.push('✅ 已完成');
+  } else if (state.terminal === 'error') {
+    parts.push('❌ 出错');
+  } else if (state.terminal === 'interrupted' || state.terminal === 'idle_timeout') {
+    parts.push('⏹ 已停止');
+  }
+
+  if (options.startedAt) {
+    const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
+    const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
+    parts.push(label);
+  }
+
+  const ctx = contextUsageText(state, options);
+  if (ctx) parts.push(ctx);
+
+  if (options.model) {
+    parts.push(`⚕${options.model}`);
+  }
+  if (options.effort) {
+    parts.push(options.effort);
+  }
+
+  if (parts.length === 0) return null;
+
+  const text = parts.join(' · ');
+  const content = state.terminal === 'error' ? `<font color='red'>${text}</font>` : text;
+
+  return {
+    tag: 'markdown',
+    content,
+    text_size: 'notation',
+  };
+}
+
+/** 把英文/内部工具名精简为大白话 */
+function simplifyToolName(toolName: string): string {
+  const mapping: Record<string, string> = {
+    Bash: '跑命令',
+    command_execution: '跑命令',
+    Read: '读文件',
+    Write: '写文件',
+    Edit: '改文件',
+    Grep: '搜内容',
+    Glob: '搜文件',
+    WebFetch: '看网页',
+    WebSearch: '联网搜',
+    Agent: '派任务',
+    Task: '派任务',
+  };
+  return mapping[toolName] || toolName;
 }
 
 /**

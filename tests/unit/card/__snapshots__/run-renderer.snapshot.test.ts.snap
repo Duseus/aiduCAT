@@ -50,6 +50,13 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
       "content": "🫧Poping…",
     },
   },
+  "header": {
+    "template": "blue",
+    "title": {
+      "content": "💭 处理中... ⚡ 改文件",
+      "tag": "plain_text",
+    },
+  },
   "schema": "2.0",
 }
 `;
@@ -92,12 +99,27 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "✅ 已完成",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "✅",
+    },
+  },
+  "header": {
+    "template": "green",
+    "title": {
+      "content": "✅ 已完成",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -152,6 +174,13 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
       "content": "🌊Waving…",
     },
   },
+  "header": {
+    "template": "blue",
+    "title": {
+      "content": "💭 处理中...",
+      "tag": "plain_text",
+    },
+  },
   "schema": "2.0",
 }
 `;
@@ -196,12 +225,27 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "✅ 已完成",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "✅",
+    },
+  },
+  "header": {
+    "template": "green",
+    "title": {
+      "content": "✅ 已完成",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -244,12 +288,27 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "✅ 已完成",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "✅",
+    },
+  },
+  "header": {
+    "template": "green",
+    "title": {
+      "content": "✅ 已完成",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -292,12 +351,27 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "<font color='red'>❌ 出错</font>",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "❌",
+    },
+  },
+  "header": {
+    "template": "red",
+    "title": {
+      "content": "❌ 出错",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -344,12 +418,27 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "⏹ 已停止",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "⭕️",
+    },
+  },
+  "header": {
+    "template": "red",
+    "title": {
+      "content": "⏹ 已停止",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -396,12 +485,27 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "⏹ 已停止",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "⚠️",
+    },
+  },
+  "header": {
+    "template": "red",
+    "title": {
+      "content": "⏹ 已停止",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -454,6 +558,13 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
     "streaming_mode": true,
     "summary": {
       "content": "🌊Waving…",
+    },
+  },
+  "header": {
+    "template": "blue",
+    "title": {
+      "content": "💭 处理中...",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -540,6 +651,13 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
       "content": "🫧Poping…",
     },
   },
+  "header": {
+    "template": "blue",
+    "title": {
+      "content": "💭 处理中... ⚡ 跑命令",
+      "tag": "plain_text",
+    },
+  },
   "schema": "2.0",
 }
 `;
@@ -580,12 +698,27 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "✅ 已完成",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "✅",
+    },
+  },
+  "header": {
+    "template": "green",
+    "title": {
+      "content": "✅ 已完成",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
@@ -628,12 +761,27 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "collapsible_panel",
         "vertical_spacing": "8px",
       },
+      {
+        "tag": "hr",
+      },
+      {
+        "content": "✅ 已完成",
+        "tag": "markdown",
+        "text_size": "notation",
+      },
     ],
   },
   "config": {
     "streaming_mode": false,
     "summary": {
       "content": "✅",
+    },
+  },
+  "header": {
+    "template": "green",
+    "title": {
+      "content": "✅ 已完成",
+      "tag": "plain_text",
     },
   },
   "schema": "2.0",
