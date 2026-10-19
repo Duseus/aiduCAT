@@ -31,10 +31,11 @@ aiduCAT originates from and credits the upstream [zarazhangrui/lark-coding-agent
 
 | Feature | Description |
 |---------|-------------|
-| 🫧 **Single Bubble panel** | The answer streams on top; thinking and all tool calls fold into one collapsible panel (aiduPOP layout) |
-| ☤ **Two-line counter header** | Collapsed, the header reads `🌊 thinking · 🫧 tools · ✨ elapsed` over `model · effort · 25k/1M (2%)` — no caption text |
+| 🏷 **Hermes-style Top Header** | Feishu native Header Banner: blue `💭 Processing... ⚡ <tool>` while streaming; green `✅ Completed` on finish; red on error/abort |
+| 🫧 **Unified Process Panel** | Streamed answer rendered on top; thinking and tool calls tucked into a collapsible panel with header `🧠 N rounds · 🛠️ N tools · ⏳ N.N s` |
+| 📊 **Hermes-style Bottom Footer** | Appends a divider `hr` and notation footer when done: `✅ Completed · 7s · 28.2k/1M (3%) · ⚕default` |
 | 👩🏻‍💻 **Per-tool emoji** | Bash👩🏻‍💻 Read👩🏻‍🏫 Edit👩🏻‍🔧 Write👩🏻‍🎨 Grep🕵🏻 Glob🥷🏻 Web👩🏻‍🚀 Agent👯🏻 — one face per tool family |
-| 🚦 **Border = status** | done green / stopped yellow / error red — read the result at a glance, no trailing notes |
+| 🚦 **Border = status** | done green / stopped yellow / error red — read the result at a glance |
 | 🎹 **Typing reaction** | A Typing emoji lands on your message the moment it arrives, and vanishes as soon as real work starts |
 | 🗣 **`/model` free switching** | Pass through any gateway combo id (e.g. `Gemini-3.8-Flash`) with no whitelist clamping |
 | 📝 **Copywriting menu** | Every visible string is cataloged in a wiki table for à-la-carte customization |
@@ -88,18 +89,21 @@ aiduCAT kill <id|#>
 One card, three parts:
 
 ```
+[Top Colored Header: 💭 Processing... / ✅ Completed]
+
 [final answer, streamed]
 
-🫧Poping…                                    ← live status line (above panel)
-┌─────────────────────────────────────┐
-│  2 · 🫧 4 · ✨ 38s                  │  ← header line 1: counters
-│ Gemini-3.8-Flash · max · 25k/1M (2%) │  ← header line 2: model · effort · context
-└─────────────────────────────────────┘
+┌────────────────────────────────────────┐
+│ 🧠  1 rounds · 🛠️  0 tools · ⏳  0.0 s │  ← process collapsible panel header
+└────────────────────────────────────────┘
+
+──────────────────────────────────────────  ← bottom divider hr
+✅ Completed · 7s · 28.2k/1M (3%) · ⚕default ← bottom notation status line
 ```
 
-- **While running**: a live status word (🌊Waving… / 🫧Poping… / ☤aiduCATing…) rides on its own line above the panel; the two-line header shows thinking segments / tool count / elapsed time on top, model · effort · live context usage (`25k/1M (2%)`, refreshed per API call) below
-- **Expanded panel**: thinking text is prefixed 🌊; each tool line carries its own emoji (👩🏻‍💻Bash 👩🏻‍🏫Read 👩🏻‍🔧Edit 👩🏻‍🎨Write 🕵🏻Grep 🥷🏻Glob 👩🏻‍🚀Web 👯🏻agent 🤵🏻other)
-- **On completion**: the status word disappears; the **panel border carries the result** — done green / stopped yellow / error red
+- **Top Colored Header**: Feishu native Header Banner (blue while streaming with tool hint `⚡ 跑命令/读文件/改文件`; turns green `✅ Completed` or red `❌ Error` when done)
+- **Process Collapsible Panel**: header cleanly shows `🧠 N rounds · 🛠️ N tools · ⏳ N.N s`; expanding reveals thinking trace and per-tool input/outputs; **panel border carries result** — done green / stopped yellow / error red
+- **Bottom Status Line**: appended upon completion below a divider `hr`, showing `status · elapsed · context usage & percent · ⚕model`, styled in red if failed.
 
 ## Sessions and queueing
 
