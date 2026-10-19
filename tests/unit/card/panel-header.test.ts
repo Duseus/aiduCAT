@@ -21,8 +21,8 @@ function stateWithUsage(overrides: Partial<RunState> = {}): RunState {
   return { ...state, ...overrides };
 }
 
-describe('two-line panel header (猴哥点单 f0.1)', () => {
-  it('top line carries thinking · tools · elapsed, bottom line carries model · effort · ctx', () => {
+describe('single-line panel header', () => {
+  it('carries thinking · tools · elapsed · model · effort · ctx in a single line', () => {
     const state = stateWithUsage();
     const card = renderCard(state, {
       model: 'Gemini-3.8-Flash',
@@ -31,17 +31,14 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       startedAt: Date.now() - 5_000,
     });
     const title = panelTitle(card);
-    const [top, bottom] = title.split('\n');
-    // 猴哥点单: zero counts still show — stable header shape.
-    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 5s');
-    expect(bottom).toBe('Gemini-3.8-Flash · max · 25k/1M (2%)');
+    expect(title).toBe('🌊 0 · 🫧 0 · ✨ 5s · Gemini-3.8-Flash · max · 25k/1M (2%)');
   });
 
   it('omits ctx% when contextWindow unknown, omits effort when unset', () => {
     const state = stateWithUsage();
     const card = renderCard(state, { model: 'SomeModel' });
     const title = panelTitle(card);
-    expect(title).toBe('🌊 0 · 🫧 0\nSomeModel · 25k/1M (3%)');
+    expect(title).toBe('🌊 0 · 🫧 0 · SomeModel · 25k/1M (3%)');
   });
 
   it('omits the whole ctx piece until usage arrives', () => {
@@ -50,7 +47,7 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       effort: 'high',
       contextWindow: 1000000,
     });
-    expect(panelTitle(card)).toBe('🌊 0 · 🫧 0\nGLM-5.3-Flash · high');
+    expect(panelTitle(card)).toBe('🌊 0 · 🫧 0 · GLM-5.3-Flash · high');
   });
 
   it('formats used/total with k/M units and percentage', () => {
@@ -94,13 +91,13 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
     expect(panelTitle(card)).toContain('25.5k/1M (3%)');
   });
 
-  it('zero thinking/tool counts still render on the top line', () => {
+  it('zero thinking/tool counts still render in the line', () => {
     const card = renderCard(initialState, { model: 'M', startedAt: Date.now() - 1000 });
-    const [top] = panelTitle(card).split('\n');
-    expect(top).toBe('🌊 0 · 🫧 0 · ✨ 1s');
+    const title = panelTitle(card);
+    expect(title).toBe('🌊 0 · 🫧 0 · ✨ 1s · M');
   });
 
-  it('thinking and tool counts land on the top line', () => {
+  it('thinking and tool counts land in the line', () => {
     let state = reduce(initialState, { type: 'thinking', delta: 'hmm' });
     state = reduce(state, { type: 'tool_use', id: 't1', name: 'Bash', input: {} });
     const card = renderCard(state, {
@@ -109,9 +106,9 @@ describe('two-line panel header (猴哥点单 f0.1)', () => {
       contextWindow: 1000000,
       startedAt: Date.now() - 2000,
     });
-    const [top] = panelTitle(card).split('\n');
-    expect(top).toContain('🌊 1');
-    expect(top).toContain('🫧 1');
-    expect(top).toContain('✨');
+    const title = panelTitle(card);
+    expect(title).toContain('🌊 1');
+    expect(title).toContain('🫧 1');
+    expect(title).toContain('✨');
   });
 });

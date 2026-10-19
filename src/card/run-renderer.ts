@@ -179,38 +179,32 @@ function panelBorderColor(state: RunState): 'grey' | 'green' | 'yellow' | 'red' 
 }
 
 /**
- * aiduPOP header, two lines (猴哥点单 f0.1):
- *   top line:    🌊 thinking-n · 🫧 tool-n · ✨ elapsed
- *   bottom line: model · effort · 23k/1M (2%)   (plain text, no emoji)
- * Each piece only appears when it has a value; separators are the aiduPOP `·`.
+ * aiduPOP header (单行展示):
+ *   🌊 thinking-n · 🫧 tool-n · ✨ elapsed · model · effort · 23k/1M (2%)
+ * Each piece only appears when it has a value (counts always show); separators are the aiduPOP `·`.
  * Elapsed keeps ticking across card updates because renderCard is re-run on
  * every streaming update with the fixed `options.startedAt`.
  */
 function metaHeader(state: RunState, options: RunCardRenderOptions): string {
-  const line1: string[] = [];
-  // aiduCAT f0.1: the live status word moved out of the header — it renders on
-  // its own line above the panel (below the answer, left-aligned) so the panel
-  // header stays uniformly clean at all times.
-  if (options.model) line1.push(options.model);
-  if (options.effort) line1.push(options.effort);
-  const ctx = contextUsageText(state, options);
-  if (ctx) line1.push(ctx);
-  if (state.terminal === 'error') line1.push('❌');
+  const parts: string[] = [];
 
-  // 猴哥点单 f0.1+: counts always show, even at zero — the header keeps a
-  // stable shape instead of pieces popping in and out.
-  const line2: string[] = [];
-  line2.push(`🌊 ${state.reasoning.segments}`);
+  // counts always show, even at zero — the header keeps a stable shape
+  parts.push(`🌊 ${state.reasoning.segments}`);
   const toolCount = state.blocks.filter((b) => b.kind === 'tool').length;
-  line2.push(`🫧 ${toolCount}`);
+  parts.push(`🫧 ${toolCount}`);
   if (options.startedAt) {
     const secs = Math.max(0, Math.round((Date.now() - options.startedAt) / 1000));
     const label = secs >= 60 ? `${Math.floor(secs / 60)}m${secs % 60}s` : `${secs}s`;
-    line2.push(`✨ ${label}`);
+    parts.push(`✨ ${label}`);
   }
 
-  // 猴哥点单: counts/elapsed on top, model/effort/context below.
-  return [line2.join(' · '), line1.join(' · ')].filter(Boolean).join('\n');
+  if (options.model) parts.push(options.model);
+  if (options.effort) parts.push(options.effort);
+  const ctx = contextUsageText(state, options);
+  if (ctx) parts.push(ctx);
+  if (state.terminal === 'error') parts.push('❌');
+
+  return parts.join(' · ');
 }
 
 /**
