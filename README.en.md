@@ -98,12 +98,12 @@ One card, three parts:
 └────────────────────────────────────────┘
 
 ──────────────────────────────────────────  ← bottom divider hr
-✅ Completed · 28.2k/1M (3%) · 2.5k tokens · ⚕default ← bottom notation status line
+✅ Completed · 28.2k/1M (3%) · ⚕default     ← bottom notation status line
 ```
 
 - **Top Colored Header**: Feishu native Header Banner (blue while streaming with tool hint `⚡ 跑命令/读文件/改文件`; turns green `✅ Completed` or red `❌ Error` when done)
 - **Process Collapsible Panel**: header cleanly shows `🧠 N rounds · 🛠️ N tools · ⏳ N.N s`; expanding reveals thinking trace and per-tool input/outputs; **panel border carries result** — done green / stopped yellow / error red
-- **Bottom Status Line**: appended upon completion below a divider `hr`, showing `status · context usage & percent · tokens · ⚕model`, styled in red if failed.
+- **Bottom Status Line**: appended upon completion below a divider `hr`, showing `status · context usage & percent · ⚕model`, styled in red if failed.
 
 ## Sessions and queueing
 

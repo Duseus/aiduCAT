@@ -183,8 +183,8 @@ function renderHermesHeader(state: RunState): object | null {
 
 /**
  * Hermes 风格底部 Footer:
- * 包含状态、用量、Tokens、模型:
- * "✅ 已完成 · 28.2k/1M (3%) · 2.5k tokens · ⚕default"
+ * 包含状态、上下文用量、模型:
+ * "✅ 已完成 · 28.2k/1M (3%) · ⚕default"
  */
 function renderHermesFooter(state: RunState, options: RunCardRenderOptions): object | null {
   if (state.terminal === 'running') return null;
@@ -201,9 +201,6 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
 
   const ctx = contextUsageText(state, options);
   if (ctx) parts.push(ctx);
-
-  const tokensText = tokenUsageText(state);
-  if (tokensText) parts.push(tokensText);
 
   if (options.model) {
     parts.push(`⚕${options.model}`);
@@ -222,18 +219,6 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
     content,
     text_size: 'notation',
   };
-}
-
-/** 格式化本轮有效 token 消耗 (如 "2.5k tokens") */
-function tokenUsageText(state: RunState): string {
-  const u = state.usage;
-  if (!u) return '';
-  const inTokens = u.inputTokens ?? 0;
-  const cachedTokens = u.cachedInputTokens ?? 0;
-  const effectiveInput = inTokens >= cachedTokens ? inTokens : inTokens + cachedTokens;
-  const total = effectiveInput + (u.cacheCreationInputTokens ?? 0) + (u.outputTokens ?? 0);
-  if (total === 0) return '';
-  return `${formatTokens(total)} tokens`;
 }
 
 /** 把英文/内部工具名精简为大白话 */

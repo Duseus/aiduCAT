@@ -72,7 +72,7 @@ describe('Hermes unified panel header', () => {
     expect(title).toContain('⏳  2.0 秒');
   });
 
-  it('renders Hermes footer with status, context, tokens, and model', () => {
+  it('renders Hermes footer with status, context, and model', () => {
     const state = reduce(stateWithUsage(), { type: 'done', terminationReason: 'normal' });
     const card = renderCard(state, {
       model: 'Gemini-3.8-Flash',
@@ -83,6 +83,6 @@ describe('Hermes unified panel header', () => {
     const footer = elements[elements.length - 1];
     expect(footer.tag).toBe('markdown');
     expect(footer.text_size).toBe('notation');
-    expect(footer.content).toBe('✅ 已完成 · 25k/1M (2%) · 25k tokens · ⚕Gemini-3.8-Flash');
+    expect(footer.content).toBe('✅ 已完成 · 25k/1M (2%) · ⚕Gemini-3.8-Flash');
   });
 });
