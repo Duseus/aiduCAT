@@ -71,4 +71,18 @@ describe('Hermes unified panel header', () => {
     expect(title).toContain('🛠️  1 个工具');
     expect(title).toContain('⏳  2.0 秒');
   });
+
+  it('renders Hermes footer with status, context, tokens, and model', () => {
+    const state = reduce(stateWithUsage(), { type: 'done', terminationReason: 'normal' });
+    const card = renderCard(state, {
+      model: 'Gemini-3.8-Flash',
+      contextWindow: 1048576,
+    }) as any;
+
+    const elements = card.body.elements;
+    const footer = elements[elements.length - 1];
+    expect(footer.tag).toBe('markdown');
+    expect(footer.text_size).toBe('notation');
+    expect(footer.content).toBe('✅ 已完成 · 25k/1M (2%) · 25k tokens · ⚕Gemini-3.8-Flash');
+  });
 });
