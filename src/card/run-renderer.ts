@@ -222,7 +222,7 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
   };
 }
 
-/** 美化模型名称（去除 provider 路径前缀与日期后缀，优先显示核心模型标识） */
+/** 美化模型名称（去除 provider 路径前缀与日期后缀，优先显示核心模型标识，严格单行不超宽） */
 function formatModelName(model: string | undefined): string | null {
   if (!model) return null;
   let name = model.trim();
@@ -232,16 +232,23 @@ function formatModelName(model: string | undefined): string | null {
   }
   // 去除类似 -20250514 或 -2026-05-14 这种日期尾巴
   name = name.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
-  // 针对常见模型做更漂亮的缩写/大小写美化
+  // 去除 -high 这种推理后缀（避免手机端换行）
+  name = name.replace(/-high$/i, '');
+
   const lower = name.toLowerCase();
   if (lower.startsWith('gemini-')) {
-    name = name.replace(/^gemini-/i, 'Gemini-').replace(/-high$/i, ' (High)');
+    name = name.replace(/^gemini-/i, 'Gemini-');
   } else if (lower.startsWith('claude-')) {
     name = name.replace(/^claude-/i, 'Claude-');
   } else if (lower.startsWith('deepseek-')) {
     name = name.replace(/^deepseek-/i, 'DeepSeek-');
   } else if (lower.startsWith('qwen-')) {
     name = name.replace(/^qwen-/i, 'Qwen-');
+  }
+
+  // 对齐 Hermes: 最大长度截断，确保手机端绝对单行不折行
+  if (name.length > 20) {
+    name = name.slice(0, 19) + '…';
   }
   return name;
 }
