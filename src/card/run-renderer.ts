@@ -120,6 +120,7 @@ export function renderCard(state: RunState, options: RunCardRenderOptions = {}):
   const cardPayload: Record<string, any> = {
     schema: '2.0',
     config: {
+      wide_screen_mode: true,
       streaming_mode: state.terminal === 'running',
       summary: { content: summaryText(state) },
     },
@@ -184,7 +185,7 @@ function renderHermesHeader(state: RunState): object | null {
 /**
  * Hermes 风格底部 Footer:
  * 包含状态、上下文用量、模型:
- * "✅ 28.2k/1M (3%) · ⚕Gemini-3.8-Flash"
+ * "✅ 已完成 · 28.2k/1M (3%) · ⚕Gemini-3.8-Flash"
  */
 function renderHermesFooter(state: RunState, options: RunCardRenderOptions): object | null {
   if (state.terminal === 'running') return null;
@@ -192,11 +193,11 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
   const parts: string[] = [];
 
   if (state.terminal === 'done') {
-    parts.push('✅');
+    parts.push('✅ 已完成');
   } else if (state.terminal === 'error') {
-    parts.push('❌');
+    parts.push('❌ 出错');
   } else if (state.terminal === 'interrupted' || state.terminal === 'idle_timeout') {
-    parts.push('⏹');
+    parts.push('⏹ 已停止');
   }
 
   const ctx = contextUsageText(state, options);

@@ -49,6 +49,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
     "summary": {
       "content": "🫧Poping…",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "blue",
@@ -103,7 +104,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         "tag": "hr",
       },
       {
-        "content": "✅",
+        "content": "✅ 已完成",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -114,6 +115,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
     "summary": {
       "content": "✅",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "green",
@@ -173,6 +175,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 1`]
     "summary": {
       "content": "🌊Waving…",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "blue",
@@ -229,7 +232,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
         "tag": "hr",
       },
       {
-        "content": "✅",
+        "content": "✅ 已完成",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -240,6 +243,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
     "summary": {
       "content": "✅",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "green",
@@ -292,7 +296,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "✅",
+        "content": "✅ 已完成",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -303,6 +307,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
     "summary": {
       "content": "✅",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "green",
@@ -355,7 +360,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "<font color='red'>❌</font>",
+        "content": "<font color='red'>❌ 出错</font>",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -366,6 +371,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
     "summary": {
       "content": "❌",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "red",
@@ -422,7 +428,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "⏹",
+        "content": "⏹ 已停止",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -433,6 +439,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
     "summary": {
       "content": "⭕️",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "red",
@@ -489,7 +496,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "⏹",
+        "content": "⏹ 已停止",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -500,6 +507,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
     "summary": {
       "content": "⚠️",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "red",
@@ -559,6 +567,7 @@ exports[`run card renderer snapshots > renders initial running state 1`] = `
     "summary": {
       "content": "🌊Waving…",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "blue",
@@ -650,6 +659,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "summary": {
       "content": "🫧Poping…",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "blue",
@@ -702,7 +712,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "hr",
       },
       {
-        "content": "✅",
+        "content": "✅ 已完成",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -713,6 +723,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "summary": {
       "content": "✅",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "green",
@@ -765,7 +776,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "hr",
       },
       {
-        "content": "✅",
+        "content": "✅ 已完成",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -776,6 +787,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
     "summary": {
       "content": "✅",
     },
+    "wide_screen_mode": true,
   },
   "header": {
     "template": "green",
