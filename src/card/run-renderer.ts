@@ -202,8 +202,9 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
   const ctx = contextUsageText(state, options);
   if (ctx) parts.push(ctx);
 
-  if (options.model) {
-    parts.push(`⚕${options.model}`);
+  const displayModel = formatModelName(state.actualModel || options.model);
+  if (displayModel) {
+    parts.push(`⚕${displayModel}`);
   }
   if (options.effort) {
     parts.push(options.effort);
@@ -219,6 +220,17 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
     content,
     text_size: 'notation',
   };
+}
+
+/** 美化模型名称（去除 provider 路径前缀，优先显示核心模型标识） */
+function formatModelName(model: string | undefined): string | null {
+  if (!model) return null;
+  let name = model.trim();
+  if (!name || name === 'default') return null;
+  if (name.includes('/')) {
+    name = name.split('/').pop() || name;
+  }
+  return name;
 }
 
 /** 把英文/内部工具名精简为大白话 */

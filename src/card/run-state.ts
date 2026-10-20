@@ -47,6 +47,8 @@ export interface RunState {
     cachedInputTokens?: number;
     cacheCreationInputTokens?: number;
   };
+  /** Actual model reported by the agent's init event. */
+  actualModel?: string;
 }
 
 export const initialState: RunState = {
@@ -99,6 +101,13 @@ function closeStreamingText(blocks: Block[]): Block[] {
 
 export function reduce(state: RunState, evt: AgentEvent): RunState {
   switch (evt.type) {
+    case 'system': {
+      if (evt.model) {
+        return { ...state, actualModel: evt.model };
+      }
+      return state;
+    }
+
     case 'text': {
       const last = state.blocks[state.blocks.length - 1];
       const merged =
