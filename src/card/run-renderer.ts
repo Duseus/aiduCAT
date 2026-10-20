@@ -184,7 +184,7 @@ function renderHermesHeader(state: RunState): object | null {
 /**
  * Hermes 风格底部 Footer:
  * 包含状态、上下文用量、模型:
- * "✅ 已完成 · 28.2k/1M (3%) · ⚕default"
+ * "✅ 28.2k/1M (3%) · ⚕Gemini-3.8-Flash"
  */
 function renderHermesFooter(state: RunState, options: RunCardRenderOptions): object | null {
   if (state.terminal === 'running') return null;
@@ -192,11 +192,11 @@ function renderHermesFooter(state: RunState, options: RunCardRenderOptions): obj
   const parts: string[] = [];
 
   if (state.terminal === 'done') {
-    parts.push('✅ 已完成');
+    parts.push('✅');
   } else if (state.terminal === 'error') {
-    parts.push('❌ 出错');
+    parts.push('❌');
   } else if (state.terminal === 'interrupted' || state.terminal === 'idle_timeout') {
-    parts.push('⏹ 已停止');
+    parts.push('⏹');
   }
 
   const ctx = contextUsageText(state, options);

@@ -103,7 +103,7 @@ exports[`run card renderer snapshots > collapses consecutive tools while preserv
         "tag": "hr",
       },
       {
-        "content": "✅ 已完成",
+        "content": "✅",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -229,7 +229,7 @@ exports[`run card renderer snapshots > renders active and completed thinking 2`]
         "tag": "hr",
       },
       {
-        "content": "✅ 已完成",
+        "content": "✅",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -292,7 +292,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "✅ 已完成",
+        "content": "✅",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -355,7 +355,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "<font color='red'>❌ 出错</font>",
+        "content": "<font color='red'>❌</font>",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -422,7 +422,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "⏹ 已停止",
+        "content": "⏹",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -489,7 +489,7 @@ exports[`run card renderer snapshots > renders done, error, interrupted, and idl
         "tag": "hr",
       },
       {
-        "content": "⏹ 已停止",
+        "content": "⏹",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -702,7 +702,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "hr",
       },
       {
-        "content": "✅ 已完成",
+        "content": "✅",
         "tag": "markdown",
         "text_size": "notation",
       },
@@ -765,7 +765,7 @@ exports[`run card renderer snapshots > renders tool running, done, and error sta
         "tag": "hr",
       },
       {
-        "content": "✅ 已完成",
+        "content": "✅",
         "tag": "markdown",
         "text_size": "notation",
       },
